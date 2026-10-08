@@ -99,12 +99,12 @@ const h=(t,a={},...k)=>{const e=document.createElement(t);for(const x in a){if(x
 const show=id=>{['home','admin','game','result'].forEach(x=>$(x).style.display=x===id?(x==='game'?'flex':'block'):'none');document.documentElement.classList.toggle('play',id==='game')};
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 // ---------- themes
-const THEMES=[{id:'light',name:'Светлая',note:'первая версия',sw:['#c9dde6','#f4f7ef','#ffffff']},
- {id:'red',name:'Красные границы',note:'текущая',sw:['#6fb0dd','#ecefc9','#c8372d']},
+const THEMES=[{id:'light',name:'Светлая',sw:['#c9dde6','#f4f7ef','#ffffff']},
+ {id:'red',name:'Красные границы',sw:['#6fb0dd','#ecefc9','#c8372d']},
  {id:'atlas',name:'Атлас',sw:['#8fc4d6','#ead9a6','#8a5a2b']},
  {id:'pol',name:'Политическая',sw:['#b9dcee','#f7cf8a','#a9d9a2']},
  {id:'night',name:'Ночная',sw:['#0a1c30','#3f6178','#8fd3ff']},
- {id:'mono',name:'Контурная ч/б',note:'для печати',sw:['#f1f1f1','#ffffff','#222222']}];
+ {id:'mono',name:'Контурная ч/б',sw:['#f1f1f1','#ffffff','#222222']}];
 const POL=['#f2a7a0','#f7cf8a','#e8e48f','#a9d9a2','#8fd0d6','#a9b9ec','#d4a9e3'];
 let THEME='red';try{THEME=sessionStorage.getItem('gt_theme')||'red'}catch(e){}
 if(!THEMES.some(t=>t.id===THEME))THEME='red';

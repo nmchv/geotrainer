@@ -19,10 +19,19 @@ input[type=text],input[type=search],select,textarea{padding:8px 10px;border:1px 
 .page{max-width:900px;margin:0 auto;padding:22px 16px 48px}
 h1{font-size:28px;margin:0 0 4px;letter-spacing:-.015em}h2{font-size:18px;margin:22px 0 8px}
 .sub,.stat{color:var(--mute)}.sub{margin:0 0 18px}
+.home-cover{padding:24px;margin-bottom:22px;border:1px solid var(--cover-edge);border-radius:16px;background:radial-gradient(ellipse at 94% 18%,var(--cover-glow),transparent 42%),linear-gradient(135deg,var(--cover-a),var(--cover-b));transition:background .2s,border-color .2s}
+.home-cover h1{margin-bottom:6px}.home-cover .sub{margin:0;max-width:620px}
+#home[data-th="pol"]{--cover-a:#e7f4fb;--cover-b:#f3f5e8;--cover-glow:#a9d9a255;--cover-edge:#a9d9a2}
+#home[data-th="red"]{--cover-a:#e4f2fa;--cover-b:#f3f5e7;--cover-glow:#c8372d22;--cover-edge:#c8372d55}
+#home[data-th="light"]{--cover-a:#edf5f8;--cover-b:#f7f8f3;--cover-glow:#9fd0ee55;--cover-edge:#c9dde6}
+#home[data-th="atlas"]{--cover-a:#edf5f2;--cover-b:#f5eedc;--cover-glow:#8a5a2b22;--cover-edge:#b3ab94}
+#home[data-th="night"]{--cover-a:#172b3d;--cover-b:#1d3037;--cover-glow:#8fd3ff33;--cover-edge:#35566b}
+#home[data-th="mono"]{--cover-a:#f4f4f4;--cover-b:#fff;--cover-glow:#2222220d;--cover-edge:#c4c4c4}
 .tests{display:grid;gap:10px}
 .tcard{display:flex;justify-content:space-between;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px;text-align:left;width:100%}
 .tcard:hover{border-color:var(--acc)}
 .tcard b{display:block;font-size:17px}.tcard span{color:var(--mute);font-size:14px}
+.test-filters{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 16px}.test-filters input{flex:1 1 220px;max-width:420px}.test-filters select{width:auto;min-width:170px}
 .tag{background:var(--sea2);border-radius:20px;padding:2px 10px;font-size:13px;white-space:nowrap}
 #game{display:none;height:100%;flex-direction:column}
 html.play,html.play body{height:100%;overflow:hidden}
@@ -103,34 +112,82 @@ const h=(t,a={},...k)=>{const e=document.createElement(t);for(const x in a){if(x
 const show=id=>{['home','admin','game','result'].forEach(x=>$(x).style.display=x===id?(x==='game'?'flex':'block'):'none');document.documentElement.classList.toggle('play',id==='game')};
 const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
 // ---------- themes
-const THEMES=[{id:'light',name:'Светлая',note:'первая версия',sw:['#c9dde6','#f4f7ef','#ffffff']},
- {id:'red',name:'Красные границы',note:'текущая',sw:['#6fb0dd','#ecefc9','#c8372d']},
+const THEMES=[{id:'light',name:'Светлая',sw:['#c9dde6','#f4f7ef','#ffffff']},
+ {id:'red',name:'Красные границы',sw:['#6fb0dd','#ecefc9','#c8372d']},
  {id:'atlas',name:'Атлас',sw:['#8fc4d6','#ead9a6','#8a5a2b']},
  {id:'pol',name:'Политическая',sw:['#b9dcee','#f7cf8a','#a9d9a2']},
  {id:'night',name:'Ночная',sw:['#0a1c30','#3f6178','#8fd3ff']},
- {id:'mono',name:'Контурная ч/б',note:'для печати',sw:['#f1f1f1','#ffffff','#222222']}];
+ {id:'mono',name:'Контурная ч/б',sw:['#f1f1f1','#ffffff','#222222']}];
 const POL=['#f2a7a0','#f7cf8a','#e8e48f','#a9d9a2','#8fd0d6','#a9b9ec','#d4a9e3'];
-let THEME='red';try{THEME=sessionStorage.getItem('gt_theme')||'red'}catch(e){}
-if(!THEMES.some(t=>t.id===THEME))THEME='red';
+let THEME='pol';try{THEME=sessionStorage.getItem('gt_theme')||'pol'}catch(e){}
+if(!THEMES.some(t=>t.id===THEME))THEME='pol';
 function applyTheme(){$('mapwrap').dataset.th=THEME;
  if(THEME==='pol')for(const k in els){if(els[k][0].classList.contains('x'))continue;const c=POL[[...k].reduce((a,ch)=>(a*31+ch.charCodeAt(0))>>>0,7)%POL.length];els[k].forEach(e=>e.style.setProperty('--land',c))}}
+const RU_NEIGHBOR_SOURCES={nei1:'NO',nei2:'FI',nei3:'EE',nei4:'LV',nei5:'LT',nei6:'PL',nei7:'BY',nei8:'UA',nei9:'GE',nei10:'AZ',nei11:'KZ',nei12:'CN',nei13:'MN',nei14:'KP',nei17:'US',nei18:'JP'};
+const RU_NOMENCLATURE_POINTS={
+ ext1:[770,25],ext2:[673,18],ext3:[636,141],ext4:[520,97],ext5:[879,73],ext6:[898,78],
+ isl1:[635,50],isl2:[650,30],isl3:[745,37],isl4:[805,57],isl5:[857,61],isl6:[570,62],isl7:[847,135],isl8:[875,150],isl9:[886,102],isl10:[830,126],isl11:[583,75],
+ pen1:[525,68],pen2:[584,65],pen3:[701,55],pen4:[727,68],pen5:[757,50],pen6:[867,66],pen7:[875,121],pen8:[552,120],
+ sea1:[600,48],sea2:[570,67],sea3:[705,35],sea4:[765,42],sea5:[810,50],sea6:[856,55],sea7:[888,75],sea8:[846,115],sea9:[870,154],sea10:[527,83],sea11:[572,128],sea12:[582,126],sea13:[623,130],
+ str1:[884,73],str2:[866,145],str3:[849,140],str4:[873,153],str5:[586,127],str6:[657,47],str7:[655,54],str8:[668,43],str9:[745,43],str10:[787,48],
+ gulf1:[532,84],gulf2:[563,74],gulf3:[711,79],gulf4:[736,72],gulf5:[855,85],gulf6:[831,110],gulf7:[848,148],gulf8:[582,127],
+ nei15:[618,125],nei16:[626,121]
+};
+function configureRussiaNomenclature(){
+ const world=MAPS.world,itemsById=new Map();
+ TESTS.filter(t=>t.id.startsWith('ru8-')).forEach(t=>t.items.forEach(i=>itemsById.set(i.id,i)));
+ const targets=[];
+ itemsById.forEach((item,id)=>{
+  const sourceId=RU_NEIGHBOR_SOURCES[id];
+  if(sourceId){
+   const source=world.objs.find(o=>o.id===sourceId);
+   if(!source)throw new Error('Не найдена геометрия карты для '+item.name);
+   targets.push({...source,id,name:item.name});
+   return;
+  }
+  const point=RU_NOMENCLATURE_POINTS[id];
+  if(!point)throw new Error('Не заданы координаты карты для '+item.name);
+  targets.push({id,name:item.name,dot:point,c:point});
+ });
+ MAPS.russia={...world,title:'Россия и сопредельные территории',focus:{x:300,y:0,w:700,h:350},objs:[...world.objs,...targets]};
+ TESTS.filter(t=>t.id.startsWith('ru8-')).forEach(t=>{t.map='russia';t.grade=gradeLabel(t);delete t.quiz});
+}
+configureRussiaNomenclature();
 // ---------- home
-function home(){show('home');const p=$('home');p.innerHTML='';
- p.append(h('h1',{},'Геотренажёр'),h('p',{className:'sub'},'Выберите тест. Результаты не сохраняются — виден только итог текущей сессии.'));
- const l=h('div',{className:'tests'});
- TESTS.forEach(t=>l.append(h('button',{className:'tcard',on:{click:()=>start(t)}},h('div',{},h('b',{},t.title),h('span',{},(t.quiz?'Номенклатура России':MAPS[t.map].title)+' · '+(t.groups?'10 вопросов':t.mode==='random'&&t.count>0?'случайных '+Math.min(t.count,t.items.length)+' из '+t.items.length:'объектов: '+t.items.length)+(t.capitals?' · со столицами':''))),h('span',{className:'tag'},t.grade||''))));
- if(!TESTS.length)l.append(h('p',{className:'sub'},'Тестов пока нет.'));
+function questionCount(t){if(t.groups)return t.groups.reduce((n,g)=>n+g.count,0);return t.mode==='random'&&t.count>0?Math.min(t.count,t.items.length):t.items.length}
+function isAssessment(t){return questionCount(t)===10}
+function gradeLabel(t){return(t.grade||'').replace(/\s*·\s*тренировка по типу/i,'').trim()}
+function gradeFor(good){return good<5?2:good<7?3:good<9?4:5}
+function assessmentCard(t){return h('button',{className:'tcard',on:{click:()=>start(t)}},h('div',{},h('b',{},t.title),h('span',{},(t.quiz?'Номенклатура России':MAPS[t.map].title)+' · 10 случайных вопросов')),h('span',{className:'tag'},gradeLabel(t)))}
+function simpleTestCard(t){return h('button',{className:'tcard',on:{click:()=>start(t)}},h('div',{},h('b',{},t.title),h('span',{},(t.quiz?'Номенклатура России':MAPS[t.map].title)+' · вопросов: '+questionCount(t)+(t.capitals?' · со столицами':''))),h('span',{className:'tag'},gradeLabel(t)))}
+function home(){show('home');const p=$('home');p.innerHTML='';p.dataset.th=THEME;
+ p.append(h('div',{className:'home-cover'},h('h1',{},'Геотренажёр'),h('p',{className:'sub'},'Выберите тест. Результаты не сохраняются — виден только итог текущей сессии.')));
+ const allTests=[...TESTS],grades=[...new Set(allTests.map(gradeLabel).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ru',{numeric:true}));
+ const search=h('input',{type:'search',placeholder:'Поиск по названию теста'}),grade=h('select',{}),sort=h('select',{});
+ grade.append(h('option',{value:''},'Все классы'));grades.forEach(g=>grade.append(h('option',{value:g},g)));
+ [['title','По названию'],['grade','По классу'],['count','По числу вопросов: меньше сначала'],['count-desc','По числу вопросов: больше сначала']].forEach(([value,label])=>sort.append(h('option',{value},label)));
+ const filters=h('div',{className:'test-filters'},search,grade,sort),simpleTests=h('div',{className:'tests'}),assessmentTests=h('div',{className:'tests'});
+ const renderTests=()=>{const q=search.value.trim().toLocaleLowerCase('ru'),selectedGrade=grade.value;
+  const compare={title:(a,b)=>a.title.localeCompare(b.title,'ru',{numeric:true}),grade:(a,b)=>gradeLabel(a).localeCompare(gradeLabel(b),'ru',{numeric:true})||a.title.localeCompare(b.title,'ru'),count:(a,b)=>questionCount(a)-questionCount(b)||a.title.localeCompare(b.title,'ru'), 'count-desc':(a,b)=>questionCount(b)-questionCount(a)||a.title.localeCompare(b.title,'ru')}[sort.value];
+  const visible=allTests.filter(t=>(!selectedGrade||gradeLabel(t)===selectedGrade)&&(!q||(t.title+' '+gradeLabel(t)+' '+(MAPS[t.map]?.title||'')).toLocaleLowerCase('ru').includes(q))).sort(compare);
+  const simple=visible.filter(t=>!isAssessment(t)),assessed=visible.filter(isAssessment);
+  simpleTests.replaceChildren(...(simple.length?simple.map(simpleTestCard):[h('p',{className:'sub'},'Подходящих тестов нет.')]));
+  assessmentTests.replaceChildren(...(assessed.length?assessed.map(assessmentCard):[h('p',{className:'sub'},'Подходящих тестов нет.')]))
+ };
+ search.oninput=renderTests;grade.onchange=renderTests;sort.onchange=renderTests;renderTests();
  const th=h('div',{className:'themes'});
  THEMES.forEach(t=>th.append(h('button',{className:'chip'+(t.id===THEME?' on':''),on:{click:()=>{THEME=t.id;try{sessionStorage.setItem('gt_theme',THEME)}catch(e){}home()}}},
-  h('span',{className:'sw',style:`background:linear-gradient(90deg,${t.sw[0]} 0 34%,${t.sw[1]} 34% 67%,${t.sw[2]} 67%)`}),h('span',{},t.name+(t.note?' ('+t.note+')':'')))));
+  h('span',{className:'sw',style:`background:linear-gradient(90deg,${t.sw[0]} 0 34%,${t.sw[1]} 34% 67%,${t.sw[2]} 67%)`}),h('span',{},t.name))));
  const seen=new Set(),sg=h('div',{className:'tests'});
  TESTS.forEach(t=>{const k=t.map+':'+t.items.map(i=>i.id).sort().join();if(seen.has(k)||!t.items.length)return;seen.add(k);
   sg.append(h('button',{className:'tcard',on:{click:()=>t.quiz?studyQuiz(t):study(t)}},h('div',{},h('b',{},t.title),h('span',{},(t.quiz?'Номенклатура России':MAPS[t.map].title)+' · объектов: '+t.items.length)),h('span',{className:'tag'},'Изучать')))});
- p.append(h('h2',{},'Оформление карты'),th,h('h2',{},'Проверка знаний'),l,h('h2',{},'Изучение карты'),h('p',{className:'sub',style:'margin:0 0 8px'},'Без вопросов: двигайте карту, смотрите подписи, нажимайте на объекты.'),sg)}
+ p.append(h('h2',{},'Оформление карты'),th,h('h2',{},'Проверка знаний'),filters,
+  h('h2',{},'Простая проверка'),simpleTests,h('h2',{},'Проверка на оценку'),assessmentTests,
+  h('h2',{},'Изучение карты'),h('p',{className:'sub',style:'margin:0 0 8px'},'Без вопросов: двигайте карту, смотрите подписи, нажимайте на объекты.'),sg)}
 // ---------- map view
 const svg=$('svg'),G=$('g'),GL=$('gl');let els={},M=null,vb;
 function loadMap(id){M=MAPS[id];els={};G.innerHTML='';GL.innerHTML='';
- $('grat').setAttribute('d',M.grat);const r=$('bgr');vb={x:0,y:0,w:M.w,h:M.h};apply();
+ $('grat').setAttribute('d',M.grat);const r=$('bgr');vb=M.focus?{...M.focus}:{x:0,y:0,w:M.w,h:M.h};apply();
  const dots=[];
  M.objs.forEach(o=>{if(o.d){const p=document.createElementNS(NS,'path');p.setAttribute('d',o.d);p.setAttribute('class','c');p.dataset.id=o.id;G.append(p);els[o.id]=[p]}});
  M.objs.forEach(o=>{if(o.dot){const c=document.createElementNS(NS,'circle');c.setAttribute('cx',o.dot[0]);c.setAttribute('cy',o.dot[1]);c.setAttribute('r',4.5);c.setAttribute('class','c d');c.dataset.id=o.id;G.append(c);(els[o.id]=els[o.id]||[]).push(c)}})}
@@ -138,7 +195,7 @@ function apply(){svg.setAttribute('viewBox',`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);i
 function clamp(){vb.x=Math.min(Math.max(vb.x,0),M.w-vb.w);vb.y=Math.min(Math.max(vb.y,0),M.h-vb.h)}
 function scl(e){const r=svg.getBoundingClientRect(),s=Math.max(vb.w/r.width,vb.h/r.height);return{s,x:vb.x+(e.clientX-r.left-(r.width-vb.w/s)/2)*s,y:vb.y+(e.clientY-r.top-(r.height-vb.h/s)/2)*s}}
 function zoom(k,cx,cy){const nw=Math.min(M.w,Math.max(M.w/40,vb.w/k)),r=nw/vb.w;cx??=vb.x+vb.w/2;cy??=vb.y+vb.h/2;vb={x:cx-(cx-vb.x)*r,y:cy-(cy-vb.y)*r,w:nw,h:vb.h*r};clamp();apply()}
-$('zi').onclick=()=>zoom(1.6);$('zo').onclick=()=>zoom(1/1.6);$('zr').onclick=()=>{vb={x:0,y:0,w:M.w,h:M.h};apply()};
+$('zi').onclick=()=>zoom(1.6);$('zo').onclick=()=>zoom(1/1.6);$('zr').onclick=()=>{vb=M.focus?{...M.focus}:{x:0,y:0,w:M.w,h:M.h};apply()};
 svg.addEventListener('wheel',e=>{e.preventDefault();const p=scl(e);zoom(e.deltaY<0?1.25:.8,p.x,p.y)},{passive:false});
 let drag=null,moved=false;
 svg.addEventListener('pointerdown',e=>{drag={cx:e.clientX,cy:e.clientY,vx:vb.x,vy:vb.y,s:scl(e).s};moved=false});
@@ -170,7 +227,7 @@ function study(t){T=t;STUDY=true;selId=null;SL=[];loadMap(t.map);items=t.items.f
  items.forEach(it=>{const o=M.objs.find(x=>x.id===it.id);if(!o)return;
   if(o.c){const tx=it.name.replace('область','обл.');SL.push({id:it.id,kind:'name',el:mk('text','lab',o.c[0],o.c[1],tx),x:o.c[0],y:o.c[1],len:tx.length,a:o.a||0})}
   if(o.cap&&it.capital){const d=mk('circle','capdot',o.cap[0],o.cap[1]);SL.push({id:it.id,kind:'cap',dot:d,el:mk('text','lab cap',o.cap[0],o.cap[1],it.capital),x:o.cap[0],y:o.cap[1],len:it.capital.length,a:o.a||0})}});
- SL.sort((p,q)=>q.a-p.a);$('task').textContent='Изучение: '+t.title;buildList();show('game');$('cap').style.display='none';vb={x:0,y:0,w:M.w,h:M.h};apply();layout()}
+ SL.sort((p,q)=>q.a-p.a);$('task').textContent='Изучение: '+t.title;buildList();show('game');$('cap').style.display='none';vb=M.focus?{...M.focus}:{x:0,y:0,w:M.w,h:M.h};apply();layout()}
 const WK={};
 function wikiGet(t){if(!(t in WK))WK[t]=fetch('https://ru.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(t.replace(/ /g,'_'))+'?redirect=true').then(r=>r.ok?r.json():null).catch(()=>null);return WK[t]}
 function brief(t){let x=(t||'').replace(/\u0301/g,'').replace(/\s*\([^)]*\)/g,'').replace(/\s+/g,' ').trim();const m=x.match(/^.{40,}?[.!?](\s|$)/);if(m)x=m[0].trim();return x.length>230?x.slice(0,227).replace(/\s+\S*$/,'')+'…':x}
@@ -203,7 +260,8 @@ function nameOf(id){const i=T.items.find(x=>x.id===id);return i?i.name:(M.objs.f
 function start(t,only){T=t;if(t.quiz)return startQuiz(t,only);$('game').classList.remove('quiz-mode');T=t;STUDY=false;SL=[];setStudyUI(false);loadMap(t.map);items=t.items.filter(i=>els[i.id]);
  const ids=new Set(items.map(i=>i.id));for(const k in els)els[k].forEach(e=>{const x=!ids.has(k);e.classList.toggle('x',x);if(x&&e.tagName==='path')G.prepend(e)});
  let qq=only?items.filter(i=>only.includes(i.id)):items;
- if(!only&&t.mode==='random'&&t.count>0)qq=shuffle(qq).slice(0,Math.min(t.count,qq.length));
+ if(!only&&t.groups)qq=t.groups.flatMap(g=>shuffle(items.filter(i=>i.id.startsWith(g.prefix))).slice(0,g.count));
+ else if(!only&&t.mode==='random'&&t.count>0)qq=shuffle(qq).slice(0,Math.min(t.count,qq.length));
  queue=shuffle(qq);applyTheme();idx=-1;res=[];show('game');$('cap').style.display='none';next()}
 
 let quizMode=false,quizCorrect=0;
@@ -238,11 +296,9 @@ function quizNext(){
 }
 function finishQuiz(){
  const r=$('result');show('result');r.innerHTML='';$('game').classList.remove('quiz-mode');$('mapwrap').style.display='';
- const total=res.length,good=res.filter(x=>x.ok).length,pct=total?good/total:0;
- let grade=good<5?2:good<7?3:good<9?4:5;
- if(total!==10)grade=pct>=.9?5:pct>=.7?4:pct>=.5?3:2;
- r.append(h('h1',{},'Результат'),h('p',{className:'sub'},T.title),h('div',{className:'score'},good+' из '+total),
- h('h2',{},'Оценка: '+grade),h('p',{className:'sub'},'Шкала для теста на 10 вопросов: 9–10 — «5»; 7–8 — «4»; 5–6 — «3»; 0–4 — «2».'));
+ const total=res.length,good=res.filter(x=>x.ok).length;
+ r.append(h('h1',{},'Результат'),h('p',{className:'sub'},T.title),h('div',{className:'score'},good+' из '+total));
+ if(isAssessment(T)&&total===10)r.append(h('h2',{},'Оценка: '+gradeFor(good)),h('p',{className:'sub'},'Шкала: 9–10 — «5»; 7–8 — «4»; 5–6 — «3»; 0–4 — «2».'));
  if(total){const table=h('table',{},h('tr',{},h('th',{},'Вопрос / объект'),h('th',{},'Твой ответ'),h('th',{},'Правильный ответ'),h('th',{},'Результат')));
  res.forEach(x=>table.append(h('tr',{},h('td',{},x.it.question||x.it.name),h('td',{className:x.ok?'okc':'badc'},x.answer),h('td',{},x.it.name),h('td',{className:x.ok?'okc':'badc'},x.ok?'Верно':'Неверно'))));r.append(table)}
  const row=h('div',{className:'row'});
@@ -282,6 +338,7 @@ function finish(){if(T&&T.quiz)return finishQuiz();const r=$('result');show('res
  const mp=res.filter(x=>x.mapOk).length,cp=res.filter(x=>x.capOk).length,cn=res.filter(x=>x.capOk!==null).length;
  r.append(h('h1',{},'Результат'),h('p',{className:'sub'},T.title),h('div',{className:'score'},good+' из '+res.length),
   h('p',{className:'sub'},'Найдено на карте с первой попытки: '+mp+(cn?' · столицы угаданы: '+cp+' из '+cn:'')));
+ if(isAssessment(T)&&res.length===10)r.append(h('h2',{},'Оценка: '+gradeFor(good)),h('p',{className:'sub'},'Шкала: 9–10 — «5»; 7–8 — «4»; 5–6 — «3»; 0–4 — «2».'));
  if(res.length){const t=h('table',{},h('tr',{},h('th',{},'Объект'),h('th',{},'Карта'),cn?h('th',{},'Столица'):''));
   [...res].sort((a,b)=>full(a)-full(b)).forEach(x=>t.append(h('tr',{},h('td',{},x.it.name+(x.it.capital&&cn?' — '+x.it.capital:'')),
    h('td',{className:x.mapOk?'okc':'badc'},x.mapOk?'верно':(x.tries>=3?'не найден':'не с первой')),cn?h('td',{className:x.capOk?'okc':'badc'},x.capOk===null?'':x.capOk?'верно':'ошибка'):'')));r.append(t)}
@@ -342,5 +399,5 @@ function editor(p,t){const sv=()=>aSave();const objs=[...MAPS[t.map].objs].sort(
 function route(){const hs=location.hash;if(hs==='#admin')return gate();const m=hs.match(/^#t=(.+)$/);
  if(m){const t=TESTS.find(x=>x.id===decodeURIComponent(m[1]));if(t)return start(t)}home()}
 addEventListener('hashchange',route);
-fetch('tests.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{if(Array.isArray(j)&&j.length)TESTS=j;else if(j&&j.tests&&j.tests.length){TESTS=j.tests;SET=Object.assign(SET,j.settings||{})}}).catch(()=>{}).finally(route);
+fetch('tests.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{const external=Array.isArray(j)?j:j&&j.tests;if(external&&external.length){TESTS=[...TESTS.filter(t=>!external.some(x=>x.id===t.id)),...external];if(!Array.isArray(j))SET=Object.assign(SET,j.settings||{});configureRussiaNomenclature()}}).catch(()=>{}).finally(route);
 </script></body></html>

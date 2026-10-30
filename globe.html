@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Глобус — Геотренажёр</title>
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.css">
+<style>
+  :root {
+    --bg: #08090b; --surface: #111318; --elev: #191d24; --border: #292e38;
+    --text: #f2f4f7; --mute: #969eab; --acc: #5b8def; --acc-h: #a5c4ff;
+    --ok: #3bc48a; --bad: #ef5b64; --warn: #e5a921;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+    font-family: 'Manrope Variable', Manrope, system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif; }
+  body { display: flex; flex-direction: column; overflow: hidden; }
+  .top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 10px 14px;
+    padding-top: calc(10px + env(safe-area-inset-top, 0px));
+    background: var(--surface); border-bottom: 1px solid var(--border); }
+  .top a.back { color: var(--mute); text-decoration: none; font-size: .9rem; }
+  .top a.back:hover { color: var(--acc-h); }
+  #task { flex: 1; min-width: 180px; font-weight: 700; font-size: 1.05rem; line-height: 1.3; }
+  #task span { color: var(--acc-h); }
+  #task small { display: block; font-weight: 400; color: var(--mute); font-size: .8rem; }
+  .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .seg button { background: transparent; border: 0; color: var(--mute); padding: 8px 12px; font: inherit; font-size: .85rem; cursor: pointer; }
+  .seg button.on { background: var(--elev); color: var(--acc-h); }
+  select, .btn { font: inherit; font-size: .85rem; color: var(--text); background: var(--elev);
+    border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; cursor: pointer; }
+  .btn:hover, select:hover { border-color: var(--acc); }
+  label.chk { display: inline-flex; align-items: center; gap: 6px; font-size: .85rem; color: var(--mute); cursor: pointer; }
+  label.chk input { accent-color: var(--acc); width: 16px; height: 16px; }
+  #score { font-variant-numeric: tabular-nums; font-size: .85rem; border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; }
+  #wrap { position: relative; flex: 1; min-height: 0; background: var(--bg); }
+  #map { position: absolute; inset: 0; }
+  #toast { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); z-index: 5;
+    background: var(--elev); border: 1px solid var(--border); border-radius: 999px;
+    padding: 7px 16px; font-size: .9rem; opacity: 0; transition: opacity .15s; pointer-events: none; max-width: 90%; text-align: center; }
+  #toast.on { opacity: 1; }
+  #toast.ok { border-color: var(--ok); color: #6ef0b2; }
+  #toast.bad { border-color: var(--bad); color: #ff8e95; }
+  #loading { position: absolute; inset: 0; display: grid; place-items: center; z-index: 6; background: var(--bg); color: var(--mute); }
+  .mark { width: 14px; height: 14px; border-radius: 50%; background: #ffd166; border: 2px solid #111; box-shadow: 0 0 0 2px rgb(255 209 102 / .35); }
+  .maplibregl-ctrl-attrib { font-size: 10px; }
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="index.html">← К тренажёру</a>
+  <div id="task">Глобус<small>Вращайте, приближайте, нажимайте на страны</small></div>
+  <span class="seg" id="modes">
+    <button data-m="explore" class="on">Обзор</button>
+    <button data-m="mark">Метки</button>
+    <button data-m="quiz">Тест</button>
+  </span>
+  <select id="region" title="Регион для теста">
+    <option value="world">Весь мир</option>
+    <option value="Europe">Европа</option>
+    <option value="Asia">Азия</option>
+    <option value="Africa">Африка</option>
+    <option value="North America">Северная Америка</option>
+    <option value="South America">Южная Америка</option>
+    <option value="Oceania">Океания</option>
+  </select>
+  <label class="chk"><input type="checkbox" id="big" checked> Без микрогосударств</label>
+  <button class="btn" id="skip" style="display:none">Пропустить</button>
+  <button class="btn" id="clear" style="display:none">Стереть метки</button>
+  <span id="score" style="display:none">0 / 0</span>
+</div>
+
+<div id="wrap">
+  <div id="map"></div>
+  <div id="toast"></div>
+  <div id="loading">Загрузка глобуса…</div>
+</div>
+
+<script src="https://unpkg.com/maplibre-gl@5/dist/maplibre-gl.js"></script>
+<script>
+(function () {
+  // Границы стран — Natural Earth (общественное достояние), подгружаются с CDN
+  var DATA_URL = 'https://cdn.jsdelivr.net/gh/nvkelso/natural-earth-vector@master/geojson/ne_50m_admin_0_countries.geojson';
+
+  var VIEW = {
+    world:           { c: [37, 30],   z: 1.5 },
+    'Europe':        { c: [15, 52],   z: 3.0 },
+    'Asia':          { c: [90, 40],   z: 2.2 },
+    'Africa':        { c: [20, 2],    z: 2.4 },
+    'North America': { c: [-100, 45], z: 2.1 },
+    'South America': { c: [-60, -15], z: 2.4 },
+    'Oceania':       { c: [150, -20], z: 2.6 }
+  };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var toastEl = $('toast'), toastTimer;
+  function toast(msg, cls) {
+    toastEl.textContent = msg;
+    toastEl.className = 'on ' + (cls || '');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toastEl.className = ''; }, 1800);
+  }
+
+  var mode = 'explore';
+  var features = [], byId = {};
+  var markers = [];
+  var hoverId = null;
+  var quiz = { target: null, locked: false, ok: 0, total: 0 };
+
+  var map = new maplibregl.Map({
+    container: 'map',
+    style: {
+      version: 8,
+      projection: { type: 'globe' },
+      sources: {},
+      layers: [{ id: 'sea', type: 'background', paint: { 'background-color': '#10161f' } }]
+    },
+    center: VIEW.world.c,
+    zoom: VIEW.world.z,
+    minZoom: 0.8,
+    maxZoom: 9,
+    attributionControl: { compact: true, customAttribution: 'Natural Earth' }
+  });
+  map.addControl(new maplibregl.NavigationControl({ visualizePitch: false }), 'bottom-right');
+
+  fetch(DATA_URL)
+    .then(function (r) { return r.json(); })
+    .then(function (geo) {
+      geo.features = geo.features.filter(function (f) {
+        return f.properties.CONTINENT !== 'Antarctica';
+      });
+      features = geo.features;
+      features.forEach(function (f) { byId[f.properties.ADM0_A3] = f; });
+      if (map.loaded()) init(geo); else map.once('load', function () { init(geo); });
+    })
+    .catch(function () {
+      $('loading').textContent = 'Не удалось загрузить данные границ. Проверьте интернет и обновите страницу.';
+    });
+
+  function init(geo) {
+    map.addSource('c', { type: 'geojson', data: geo, promoteId: 'ADM0_A3' });
+
+    map.addLayer({
+      id: 'fill', type: 'fill', source: 'c',
+      paint: {
+        'fill-color': [
+          'case',
+          ['boolean', ['feature-state', 'ok'], false], '#3bc48a',
+          ['boolean', ['feature-state', 'bad'], false], '#ef5b64',
+          ['boolean', ['feature-state', 'rev'], false], '#e5a921',
+          ['boolean', ['feature-state', 'hover'], false], '#33476f',
+          '#222b3a'
+        ]
+      }
+    });
+    map.addLayer({
+      id: 'line', type: 'line', source: 'c',
+      paint: { 'line-color': '#4f7fd6', 'line-width': 0.8 }
+    });
+
+    $('loading').style.display = 'none';
+
+    // наведение
+    map.on('mousemove', 'fill', function (e) {
+      map.getCanvas().style.cursor = 'pointer';
+      var id = e.features[0].id;
+      if (hoverId === id) return;
+      if (hoverId !== null) map.setFeatureState({ source: 'c', id: hoverId }, { hover: false });
+      hoverId = id;
+      map.setFeatureState({ source: 'c', id: hoverId }, { hover: true });
+    });
+    map.on('mouseleave', 'fill', function () {
+      map.getCanvas().style.cursor = '';
+      if (hoverId !== null) map.setFeatureState({ source: 'c', id: hoverId }, { hover: false });
+      hoverId = null;
+    });
+
+    // клики
+    map.on('click', function (e) {
+      var hit = map.queryRenderedFeatures(e.point, { layers: ['fill'] })[0];
+
+      if (mode === 'mark') {
+        addMark(e.lngLat);
+      } else if (mode === 'explore') {
+        if (hit) toast(nameOf(hit.properties));
+      } else if (mode === 'quiz') {
+        answer(hit);
+      }
+    });
+  }
+
+  function nameOf(p) { return p.NAME_RU || p.NAME_LONG || p.NAME; }
+
+  // ---------- метки ----------
+  function addMark(lngLat) {
+    var el = document.createElement('div');
+    el.className = 'mark';
+    var m = new maplibregl.Marker({ element: el }).setLngLat(lngLat).addTo(map);
+    el.addEventListener('click', function (ev) {
+      ev.stopPropagation();
+      m.remove();
+      markers = markers.filter(function (x) { return x !== m; });
+    });
+    markers.push(m);
+  }
+  $('clear').onclick = function () {
+    markers.forEach(function (m) { m.remove(); });
+    markers = [];
+  };
+
+  // ---------- тест ----------
+  function pool() {
+    var reg = $('region').value, big = $('big').checked;
+    return features.filter(function (f) {
+      var p = f.properties;
+      if (!p.NAME_RU && !p.NAME) return false;
+      if (p.CONTINENT === 'Seven seas (open ocean)') return false;
+      if (reg !== 'world' && p.CONTINENT !== reg) return false;
+      if (big && (p.POP_EST || 0) < 500000) return false;
+      return true;
+    });
+  }
+
+  function clearStates() {
+    features.forEach(function (f) {
+      map.setFeatureState({ source: 'c', id: f.properties.ADM0_A3 }, { ok: false, bad: false, rev: false });
+    });
+  }
+
+  function nextQuestion() {
+    clearStates();
+    var list = pool();
+    if (!list.length) { $('task').innerHTML = 'Нет стран для теста<small>Измените регион</small>'; return; }
+    var f;
+    do { f = list[Math.floor(Math.random() * list.length)]; }
+    while (list.length > 1 && quiz.target && f.properties.ADM0_A3 === quiz.target);
+    quiz.target = f.properties.ADM0_A3;
+    quiz.locked = false;
+    $('task').innerHTML = 'Найдите: <span>' + nameOf(f.properties) + '</span><small>Столица: ' +
+      (f.properties.CAPITAL || '—') + '</small>';
+  }
+
+  function answer(hit) {
+    if (quiz.locked || !quiz.target) return;
+    if (!hit) { toast('Это океан — нажмите на страну', 'bad'); return; }
+    quiz.locked = true;
+    quiz.total++;
+    var id = hit.properties.ADM0_A3;
+    if (id === quiz.target) {
+      quiz.ok++;
+      map.setFeatureState({ source: 'c', id: id }, { ok: true });
+      toast('Верно!', 'ok');
+    } else {
+      map.setFeatureState({ source: 'c', id: id }, { bad: true });
+      map.setFeatureState({ source: 'c', id: quiz.target }, { rev: true });
+      toast('Это ' + nameOf(hit.properties), 'bad');
+    }
+    updScore();
+    setTimeout(nextQuestion, 1400);
+  }
+
+  function updScore() { $('score').textContent = quiz.ok + ' / ' + quiz.total; }
+
+  function fly() {
+    var v = VIEW[$('region').value] || VIEW.world;
+    map.flyTo({ center: v.c, zoom: v.z, duration: 1200 });
+  }
+
+  $('skip').onclick = function () { if (!quiz.locked) nextQuestion(); };
+  $('region').onchange = function () { fly(); if (mode === 'quiz') nextQuestion(); };
+  $('big').onchange = function () { if (mode === 'quiz') nextQuestion(); };
+
+  // ---------- режимы ----------
+  function setMode(m) {
+    mode = m;
+    Array.prototype.forEach.call($('modes').children, function (b) {
+      b.classList.toggle('on', b.getAttribute('data-m') === m);
+    });
+    $('skip').style.display = m === 'quiz' ? '' : 'none';
+    $('score').style.display = m === 'quiz' ? '' : 'none';
+    $('clear').style.display = m === 'mark' ? '' : 'none';
+    if (m === 'quiz') {
+      quiz.ok = 0; quiz.total = 0; updScore();
+      fly();
+      nextQuestion();
+    } else {
+      if (map.getSource('c')) clearStates();
+      quiz.target = null;
+      $('task').innerHTML = m === 'mark'
+        ? 'Метки<small>Нажмите на глобус, чтобы поставить метку; нажмите на метку, чтобы убрать</small>'
+        : 'Глобус<small>Вращайте, приближайте, нажимайте на страны</small>';
+    }
+  }
+  $('modes').addEventListener('click', function (e) {
+    var m = e.target.getAttribute && e.target.getAttribute('data-m');
+    if (m) setMode(m);
+  });
+})();
+</script>
+</body>
+</html>

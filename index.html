@@ -4,6 +4,8 @@
 <title>Геотренажёр — nmchv.ru</title>
 <meta name="description" content="Интерактивный тренажёр по географии: страны мира, физическая география России, субъекты и федеральные округа, столицы и административные центры.">
 <meta name="theme-color" content="#08090b">
+<meta name="color-scheme" content="dark light">
+   <script src="theme.js"></script>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%235b8def' stroke-width='1.6'%3E%3Ccircle cx='12' cy='12' r='9'/%3E%3Cellipse cx='12' cy='12' rx='4' ry='9'/%3E%3Cpath d='M3 12h18'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/manrope@5/index.css">
@@ -25,6 +27,15 @@
   --color-ok: #3bc48a;
   --color-bad: #ef5b64;
   --color-warn: #e5a921;
+   
+  /* вспомогательные цвета, которые меняются вместе с темой сайта */
+  --header-bg: rgb(8 9 11 / .82);
+  --overlay: rgb(8 9 11 / .86);
+  --shadow-lg: 0 18px 48px rgb(0 0 0 / .45);
+  --shadow-xl: 0 24px 72px rgb(0 0 0 / .5);
+  --ok-ink: #6ef0b2; --bad-ink: #ff8e95;
+  --sw-border: #ffffff22;
+  color-scheme: dark;
 
   --font-sans: 'Manrope Variable', 'Manrope', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 
@@ -50,9 +61,36 @@
   --acc: var(--color-accent); --accink: #06080c; --sea-chip: #1a2a47;
 }
 
+   /* ---------- Светлая тема сайта ----------
+   Включается атрибутом data-theme="light" на <html> (его ставит theme.js).
+   Цвета самой карты задаются отдельно — «Оформление карты» на главной. */
+:root[data-theme='light'] {
+  --color-background: #f5f7fa;
+  --color-surface: #ffffff;
+  --color-surface-elevated: #edf1f7;
+  --color-text-primary: #12161d;
+  --color-text-secondary: #566070;
+  --color-accent: #2c5fd0;
+  --color-accent-hover: #1b43a6;
+  --color-border: #d3d9e3;
+  --color-ok: #1f9d68;
+  --color-bad: #d6404a;
+  --color-warn: #c98a0a;
+
+  --header-bg: rgb(245 247 250 / .85);
+  --overlay: rgb(245 247 250 / .88);
+  --shadow-lg: 0 18px 48px rgb(20 33 61 / .18);
+  --shadow-xl: 0 24px 72px rgb(20 33 61 / .22);
+  --ok-ink: #0e6b43; --bad-ink: #a8222b;
+  --sw-border: #00000026;
+  --accink: #ffffff;
+  --sea-chip: #dbe7fb;
+  color-scheme: light;
+}
+
 *, *::before, *::after { box-sizing: border-box; }
-html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 16px); -webkit-text-size-adjust: 100%; color-scheme: dark; background: var(--color-background); }
-body {
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 16px); -webkit-text-size-adjust: 100%; background: var(--color-background); }
+   body {
   margin: 0; background: var(--color-background); color: var(--color-text-primary);
   font-family: var(--font-sans); font-size: var(--fs-body); line-height: 1.6;
   -webkit-font-smoothing: antialiased; overflow-x: hidden;
@@ -73,7 +111,7 @@ a { color: inherit; text-decoration: none; }
 .skip-link:focus { transform: none; }
 
 /* ---------- Шапка ---------- */
-.site-header { position: sticky; top: 0; z-index: 50; height: var(--header-h); background: rgb(8 9 11 / .82); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid transparent; transition: border-color .3s var(--ease); }
+.site-header { position: sticky; top: 0; z-index: 50; height: var(--header-h); background: var(--header-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid transparent; transition: border-color .3s var(--ease); }
 .site-header.is-scrolled { border-color: var(--color-border); }
 .site-header .container { height: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .brand { display: inline-flex; align-items: center; gap: 12px; font-weight: 600; letter-spacing: .01em; font-size: .95rem; min-height: 44px; background: none; border: 0; padding: 0; }
@@ -91,6 +129,20 @@ a { color: inherit; text-decoration: none; }
 @media (max-width: 640px) { .brand-name { display: none; } .nav { gap: 16px; } }
 .nav a, .nav button { white-space: nowrap; }
 @media (max-width: 480px) { .nav [data-nav=sec-style] { display: none; } }
+   
+/* кнопка смены темы (шапка и панель игры) */
+.theme-toggle { display: inline-grid; place-items: center; flex: none; width: 44px; height: 44px; padding: 0; border: 1px solid var(--color-border); border-radius: 50%; background: transparent; color: var(--color-text-secondary); transition: color .25s var(--ease), border-color .25s var(--ease), background-color .25s var(--ease); }
+.theme-toggle:hover { color: var(--color-text-primary); border-color: var(--color-accent); background: var(--color-surface-elevated); }
+.theme-toggle svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.theme-toggle .icon-moon { display: none; }
+:root[data-theme='light'] .theme-toggle .icon-sun { display: none; }
+:root[data-theme='light'] .theme-toggle .icon-moon { display: block; }
+.theme-toggle--bar { width: 38px; height: 38px; }
+.theme-toggle--bar svg { width: 18px; height: 18px; }
+/* короткая плавная смена цветов при нажатии на кнопку */
+html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after { transition: background-color .3s var(--ease), color .3s var(--ease), border-color .3s var(--ease), fill .3s var(--ease), stroke .3s var(--ease), box-shadow .3s var(--ease) !important; }
+@media (prefers-reduced-motion: reduce) { html.theme-anim, html.theme-anim *, html.theme-anim *::before, html.theme-anim *::after { transition: none !important; } }
+@media (max-width: 480px) { .header-actions { gap: 10px; } .theme-toggle { width: 40px; height: 40px; } }
 
 /* ---------- Кнопки ---------- */
 .btn {
@@ -176,8 +228,8 @@ select option { background: var(--color-surface-elevated); }
 }
 .chip:hover, .chip.on { border-color: var(--color-accent); background: var(--color-surface-elevated); color: var(--color-accent-hover); }
 .chip small { font-size: .78em; font-variant-numeric: tabular-nums; opacity: .8; }
-.sw { width: 30px; height: 16px; border-radius: 4px; border: 1px solid #ffffff22; flex: none; }
-
+.sw { width: 30px; height: 16px; border-radius: 4px; border: 1px solid var(--sw-border); flex: none; }
+   
 /* список тестов — строки, как «Проекты» на основном сайте */
 .rows { border-top: 1px solid var(--color-border); counter-reset: rows; }
 .row-item {
@@ -285,12 +337,12 @@ svg.drag { cursor: grabbing !important; }
 .c.d:hover { fill: #fff; }
 .c.d.x { display: none; }
 #info, #cap, #slist, #toast { background: var(--color-surface-elevated); border: 1px solid var(--color-border); color: var(--color-text-primary); }
-#info { display: none; position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); border-radius: 10px; padding: 12px 18px; min-width: 240px; width: min(460px, 92%); box-shadow: 0 18px 48px rgb(0 0 0 / .45); z-index: 4; }
+#info { display: none; position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); border-radius: 10px; padding: 12px 18px; min-width: 240px; width: min(460px, 92%); box-shadow: var(--shadow-lg); z-index: 4; }
 #info b { font-size: 1.1rem; display: block; margin-bottom: 2px; }
 #info .stat { font-size: .9rem; }
 #info a { color: var(--color-accent-hover); font-weight: 600; }
 .wk, #info .stat { margin: 4px 0; font-size: .9rem; line-height: 1.45; color: var(--color-text-secondary); }
-#slist { display: none; position: absolute; left: 12px; top: 12px; bottom: 12px; width: 260px; border-radius: 10px; padding: 10px; z-index: 4; flex-direction: column; box-shadow: 0 18px 48px rgb(0 0 0 / .4); }
+#slist { display: none; position: absolute; left: 12px; top: 12px; bottom: 12px; width: 260px; border-radius: 10px; padding: 10px; z-index: 4; flex-direction: column; box-shadow: var(--shadow-lg); }
 #slist[style*=block] { display: flex !important; }
 .sl-items { overflow: auto; margin-top: 8px; flex: 1; }
 .sl-row { display: flex; justify-content: space-between; gap: 8px; width: 100%; text-align: left; border: 0; background: transparent; padding: 7px 8px; border-radius: 4px; font-size: .9rem; }
@@ -301,12 +353,13 @@ svg.drag { cursor: grabbing !important; }
 .zoom button:hover { border-color: var(--color-accent); color: var(--color-accent-hover); }
 #toast { position: absolute; left: 50%; top: 12px; transform: translateX(-50%); padding: 7px 16px; border-radius: 999px; font-size: .9rem; opacity: 0; transition: opacity .15s; pointer-events: none; max-width: 90%; z-index: 3; }
 #toast.on { opacity: 1; }
-#cap { display: none; position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); border-radius: 12px; padding: 16px; width: min(580px, 94%); box-shadow: 0 18px 48px rgb(0 0 0 / .45); z-index: 4; }
+#cap { display: none; position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); border-radius: 12px; padding: 16px; width: min(580px, 94%); box-shadow: var(--shadow-lg); z-index: 4; }
 #cap p { margin: 0 0 12px; font-weight: 700; }
 #cap .opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 #cap .opts button { padding: 11px 10px; border: 1px solid var(--color-border); border-radius: var(--radius); background: transparent; min-height: 46px; transition: border-color .2s var(--ease), background .2s var(--ease); }
 #cap .opts button:hover { border-color: var(--color-accent); background: rgb(91 141 239 / .08); }
-#cap .opts button.ok { background: rgb(59 196 138 / .22); color: #6ef0b2; border-color: #3bc48a; box-shadow: 0 0 0 1px #3bc48a, 0 0 24px rgb(59 196 138 / .35); font-weight: 700; }
+#cap .opts button.ok { background: rgb(59 196 138 / .22); color: var(--ok-ink); border-color: #3bc48a; box-shadow: 0 0 0 1px #3bc48a, 0 0 24px rgb(59 196 138 / .35); font-weight: 700; }
+#cap .opts button.bad { background: rgb(239 91 100 / .2); color: var(--bad-ink); border-color: #ef5b64; box-shadow: 0 0 0 1px #ef5b64; font-weight: 700; }
 #cap .opts button.bad { background: rgb(239 91 100 / .2); color: #ff8e95; border-color: #ef5b64; box-shadow: 0 0 0 1px #ef5b64; font-weight: 700; }
 @media (max-width: 560px) { #slist { width: min(260px, 70%); } #cap .opts { grid-template-columns: 1fr; } }
 
@@ -341,8 +394,8 @@ svg.lay .c.d.x { display: none; }
 
 /* ---------- Вход и статистика ---------- */
 html.modal, html.modal body { overflow: hidden; }
-#login { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: rgb(8 9 11 / .86); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
-.login-card { width: min(460px, 100%); background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: 12px; padding: clamp(22px, 4vw, 34px); box-shadow: 0 24px 72px rgb(0 0 0 / .5); }
+#login { position: fixed; inset: 0; z-index: 200; display: grid; place-items: center; padding: 20px; background: var(--overlay); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.login-card { width: min(460px, 100%); background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: 12px; padding: clamp(22px, 4vw, 34px); box-shadow: var(--shadow-xl); }
 .login-card h2 { margin: 14px 0 8px; font-size: 1.7rem; font-weight: 600; letter-spacing: -.02em; }
 .kpis { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-top: 22px; }
 .kpi { border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface); padding: 16px 18px; display: grid; gap: 2px; }
@@ -381,14 +434,25 @@ html.modal, html.modal body { overflow: hidden; }
 #cap .opts.q1 button{text-align:left;line-height:1.35}
 
 </style></head><body>
+<header class="site-header" id="site-header"><div class="container">
+ <a class="brand" href="index.html" aria-label="Геотренажёр">
+  <svg class="brand-mark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="9"/><ellipse cx="12" cy="12" rx="4" ry="9"/><path d="M3 12h18"/></svg>
+  <span class="brand-name">Геотренажёр</span>
+ </a>
+ <div class="header-actions">
+  <nav class="nav" aria-label="nmchv.ru"><a href="https://nmchv.ru" rel="noopener">nmchv.ru</a></nav>
+  <button class="theme-toggle" type="button" data-theme-toggle aria-label="Включить светлую тему" title="Включить светлую тему"><svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></svg><svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7Z"/></svg></button>
+ </div>
+</div></header>
 <div id="home"></div>
 <div id="admin" class="page" style="display:none"></div>
 <div id="game">
  <div class="top"><div id="task"></div><span class="stat" id="prog"></span><span id="tmwrap" style="display:none"><b id="tmv"></b> <small>с</small></span>
   <span id="stctl"><label><input type="checkbox" id="fn" checked> Названия</label><label><input type="checkbox" id="fc" checked> <span id="fcl">Столицы</span></label><button class="btn ghost sm" id="fl">Список</button></span>
   <button class="btn ghost sm" id="hintb" style="display:none">Подсказка</button>
-  <button class="btn ghost sm" id="skip">Пропустить</button><button class="btn ghost sm" id="stop">Завершить</button></div>
- <div id="tmbarw" style="display:none"><i id="tmbar"></i></div>
+      <button class="btn ghost sm" id="skip">Пропустить</button><button class="btn ghost sm" id="stop">Завершить</button>
+      <button class="theme-toggle theme-toggle--bar" type="button" data-theme-toggle aria-label="Включить светлую тему" title="Включить светлую тему"><svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></svg><svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7Z"/></svg></button></div>
+    <div id="tmbarw" style="display:none"><i id="tmbar"></i></div>
  <div id="mapwrap">
   <canvas id="sat" aria-hidden="true"></canvas>
   <svg id="svg" role="img" aria-label="Карта"><rect id="bgr" fill="none"/><path id="grat" class="grat"/><g id="g"></g><g id="gl"></g></svg>
@@ -588,8 +652,11 @@ const THEMES=[
  {id:'sat',name:TT('Спутник'),sw:['#0f3a5f','#4a6a38','#8a7a52']}];
 const POL=['#f2a7a0','#f7cf8a','#e8e48f','#a9d9a2','#8fd0d6','#a9b9ec','#d4a9e3'];
 let GRADE='all';try{GRADE=sessionStorage.getItem('gt_grade')||'all'}catch(e){}
-let THEME='dark';try{THEME=sessionStorage.getItem('gt_theme')||'dark'}catch(e){}
-if(!THEMES.some(t=>t.id===THEME))THEME='dark';
+// оформление карты: пока посетитель не выбрал своё, карта следует теме сайта (тёмная / светлая)
+let THEME='dark',THEME_AUTO=true;try{const st=sessionStorage.getItem('gt_theme');if(st){THEME=st;THEME_AUTO=false}}catch(e){}
+if(THEME_AUTO)THEME=document.documentElement.getAttribute('data-theme')==='light'?'light':'dark';
+if(!THEMES.some(t=>t.id===THEME)){THEME='dark';THEME_AUTO=true}
+window.addEventListener('nmchv:themechange',e=>{if(!THEME_AUTO)return;const t=e.detail&&e.detail.theme==='light'?'light':'dark';if(t===THEME)return;THEME=t;if(CURV==='game')applyTheme();else if(CURV==='home')home(true)});
 function applyTheme(){$('mapwrap').dataset.th=THEME;
  if(window.SAT){SAT.setActive(THEME==='sat');if(THEME==='sat'&&!SAT.ok())$('mapwrap').dataset.th='dark'}
  if(THEME==='pol')for(const k in els){if(els[k][0].classList.contains('x'))continue;const c=POL[[...k].reduce((a,ch)=>(a*31+ch.charCodeAt(0))>>>0,7)%POL.length];els[k].forEach(e=>e.style.setProperty('--land',c))}}
@@ -613,8 +680,8 @@ function home(keep){const sy=window.scrollY||0;const wasHome=CURV==='home';const
  // --- первый экран
  // --- оформление
  const th=h('div',{className:'themes'});
- THEMES.forEach(t=>th.append(h('button',{className:'chip'+(t.id===THEME?' on':''),'aria-pressed':t.id===THEME?'true':'false',on:{click:()=>{THEME=t.id;try{sessionStorage.setItem('gt_theme',THEME)}catch(e){}home(true)}}},
-  h('span',{className:'sw',style:`background:linear-gradient(90deg,${t.sw[0]} 0 34%,${t.sw[1]} 34% 67%,${t.sw[2]} 67%)`}),t.name)));
+ THEMES.forEach(t=>th.append(h('button',{className:'chip'+(t.id===THEME?' on':''),'aria-pressed':t.id===THEME?'true':'false',on:{click:()=>{THEME=t.id;THEME_AUTO=false;try{sessionStorage.setItem('gt_theme',THEME)}catch(e){}home(true)}}},
+   h('span',{className:'sw',style:`background:linear-gradient(90deg,${t.sw[0]} 0 34%,${t.sw[1]} 34% 67%,${t.sw[2]} 67%)`}),t.name)));
  // --- фильтр по классам
  const grades=[...new Set(TESTS.map(t=>t.grade).filter(Boolean))].sort();
  const cnt=g=>TESTS.filter(t=>g==='all'||t.grade===g).length;
@@ -881,7 +948,7 @@ function localize(){OVL=true;
 function xlate(root){if(LANG!=='en')return;const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT),ns=[];while(w.nextNode())ns.push(w.currentNode);
  ns.forEach(n=>{const s=n.nodeValue.trim();if(s&&/[А-Яа-яЁё]/.test(s)){const r=TT(s);if(r!==s)n.nodeValue=n.nodeValue.replace(s,r)}});
  root.querySelectorAll('[aria-label],[title],[placeholder]').forEach(e=>['aria-label','title','placeholder'].forEach(a=>{const v=e.getAttribute(a);if(v)e.setAttribute(a,TT(v))}))}
-document.documentElement.lang=LANG;if(LANG==='en'){document.title=TT(document.title);const md=document.querySelector('meta[name=description]');if(md)md.content=TT(md.content);xlate(document.body)}
+document.documentElement.lang=LANG;if(window.NmchvTheme)NmchvTheme.refresh();if(LANG==='en'){document.title=TT(document.title);const md=document.querySelector('meta[name=description]');if(md)md.content=TT(md.content);xlate(document.body)}
 // ---------- boot
 function route(){const hs=location.hash;if(LANG==='en'&&(hs==='#admin')===OVL)return location.reload();   // админка работает с исходными (русскими) данными
  if(hs==='#admin')return gate();if(hs==='#stats')return statsView();const m=hs.match(/^#t=(.+)$/);

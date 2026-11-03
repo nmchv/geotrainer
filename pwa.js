@@ -1,6 +1,8 @@
 /* GeoTrainer PWA: регистрация service worker и подписка на push */
 
 (function () {
+  var installPrompt = null;
+
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () {
       navigator.serviceWorker.register('/sw.js').catch(function (e) {
@@ -8,6 +10,22 @@
       });
     });
   }
+
+  window.addEventListener('beforeinstallprompt', function (event) {
+    event.preventDefault();
+    installPrompt = event;
+  });
+
+  window.installGeoTrainer = async function () {
+    if (window.isInstalledPWA()) return { status: 'installed' };
+    if (!installPrompt) return { status: 'manual' };
+
+    var prompt = installPrompt;
+    installPrompt = null;
+    await prompt.prompt();
+    var choice = await prompt.userChoice;
+    return { status: choice.outcome };
+  };
 
   function urlBase64ToUint8Array(base64String) {
     var padding = '='.repeat((4 - (base64String.length % 4)) % 4);

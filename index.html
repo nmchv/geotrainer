@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ru"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Геотренажёр — nmchv.ru</title>
+<title>Геотренажёр</title>
 <meta name="description" content="Интерактивный тренажёр по географии: страны мира, физическая география России, субъекты и федеральные округа, столицы и административные центры.">
 <meta name="theme-color" content="#08090b">
 <meta name="color-scheme" content="dark light">
@@ -10,16 +10,13 @@
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fontsource-variable/manrope@5/index.css">
 <script>document.documentElement.classList.add('js')</script>
-<style>
-   
-<!-- PWA -->
 <link rel="manifest" href="/manifest.webmanifest">
-<meta name="theme-color" content="#08090b">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="GeoTrainer">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<style>
 /* ============================================================
    Геотренажёр — оформление в стилистике nmchv.ru
    (тёмная тема, акцент #5b8def, шрифт Manrope)
@@ -200,6 +197,16 @@ select option { background: var(--color-surface-elevated); }
 .settings { margin-top: 34px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px 16px; }
 .settings-label { font-size: var(--fs-small); letter-spacing: .14em; text-transform: uppercase; color: var(--color-text-secondary); }
 .hero-actions { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 12px; }
+.offline-dialog { width: min(520px, calc(100vw - 32px)); max-height: 90vh; overflow: auto; margin: auto; padding: 24px; color: var(--color-text-primary); background: var(--color-surface-elevated); border: 1px solid var(--color-border); border-radius: 14px; box-shadow: var(--shadow-xl); }
+.offline-dialog::backdrop { background: var(--overlay); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+.offline-dialog h2 { font-size: 1.4rem; line-height: 1.2; margin-bottom: 10px; }
+.offline-dialog p { margin: 10px 0; color: var(--color-text-secondary); }
+.offline-grade { display: grid; gap: 8px; margin: 18px 0; }
+.offline-grade select { width: 100%; padding: 10px 12px; color: var(--color-text-primary); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); }
+.offline-progress { width: 100%; height: 8px; accent-color: var(--color-accent); }
+.offline-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.offline-status { min-height: 1.5em; overflow-wrap: anywhere; }
+.offline-install-hint { padding: 12px; border: 1px solid var(--color-border); border-radius: var(--radius); }
 .hero-art { position: relative; justify-self: end; width: 100%; max-width: 420px; color: var(--color-border); }
 .hero-art svg { width: 100%; height: auto; overflow: visible; }
 .js .hero-art svg { animation: art-float 8s ease-in-out 1.2s infinite; }
@@ -227,6 +234,19 @@ select option { background: var(--color-surface-elevated); }
 .sub-head:first-of-type { margin-top: 0; }
 .sub-head h3 { font-size: clamp(1.15rem, 1.05rem + .6vw, 1.5rem); font-weight: 600; letter-spacing: -.015em; }
 .sub-head span { color: var(--color-text-secondary); font-size: var(--fs-small); }
+.test-disclosure { border-top: 1px solid var(--color-border); }
+.test-disclosure:last-child { border-bottom: 1px solid var(--color-border); }
+.test-disclosure > summary { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 22px 4px; cursor: pointer; list-style: none; }
+.test-disclosure > summary::-webkit-details-marker { display: none; }
+.test-disclosure > summary::after { content: '+'; color: var(--color-accent); font-size: 1.5rem; line-height: 1; }
+.test-disclosure[open] > summary::after { content: '−'; }
+.disclosure-copy { display: grid; gap: 4px; }
+.disclosure-copy strong { font-size: clamp(1.05rem, .98rem + .5vw, 1.4rem); font-weight: 600; }
+.disclosure-copy small { color: var(--color-text-secondary); font-size: var(--fs-small); }
+.disclosure-count { color: var(--color-text-secondary); font-size: var(--fs-small); white-space: nowrap; }
+.test-disclosure > .rows { margin-bottom: 20px; }
+.grade-order { display: grid; gap: 8px; max-width: 520px; }
+.grade-order-item { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 8px 12px; border: 1px solid var(--color-border); border-radius: var(--radius); }
 
 /* фильтры-«таблетки» */
 .filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: clamp(22px, 3.5vw, 34px); }
@@ -449,7 +469,6 @@ html.modal, html.modal body { overflow: hidden; }
   <span class="brand-name">Геотренажёр</span>
  </a>
  <div class="header-actions">
-  <nav class="nav" aria-label="nmchv.ru"><a href="https://nmchv.ru" rel="noopener">nmchv.ru</a></nav>
   <button class="theme-toggle" type="button" data-theme-toggle aria-label="Включить светлую тему" title="Включить светлую тему"><svg class="icon-sun" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M18.7 5.3l-1.6 1.6M6.9 17.1l-1.6 1.6"/></svg><svg class="icon-moon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M20.5 14.2A8.5 8.5 0 0 1 9.8 3.5a8.5 8.5 0 1 0 10.7 10.7Z"/></svg></button>
  </div>
 </div></header>
@@ -490,6 +509,48 @@ const DICT={" (досрочно)":" (ended early)"," (копия)":" (copy)"," (
 const CDICT={"Абакан":"Abakan","Абу-Даби":"Abu Dhabi","Абуджа":"Abuja","Аддис-Абеба":"Addis Ababa","Аккра":"Accra","Алжир":"Algiers","Амман":"Amman","Амстердам":"Amsterdam","Анадырь":"Anadyr","Андорра-ла-Велья":"Andorra la Vella","Анкара":"Ankara","Антананариву":"Antananarivo","Апиа":"Apia","Архангельск":"Arkhangelsk","Асмэра":"Asmara","Астана":"Astana","Астрахань":"Astrakhan","Асунсьон":"Asunción","Афины":"Athens","Ашхабад":"Ashgabat","Багдад":"Baghdad","Баку":"Baku","Бамако":"Bamako","Банги":"Bangui","Бангкок":"Bangkok","Бандар-Сери-Бегаван":"Bandar Seri Begawan","Банжул":"Banjul","Барнаул":"Barnaul","Бастер":"Basseterre","Бейрут":"Beirut","Белгород":"Belgorod","Белград":"Belgrade","Бельмопан":"Belmopan","Берлин":"Berlin","Берн":"Bern","Биробиджан":"Birobidzhan","Бисау":"Bissau","Бишкек":"Bishkek","Благовещенск":"Blagoveshchensk","Богота":"Bogotá","Браззавиль":"Brazzaville","Бразилиа":"Brasília","Братислава":"Bratislava","Бриджтаун":"Bridgetown","Брюссель":"Brussels","Брянск":"Bryansk","Будапешт":"Budapest","Бухарест":"Bucharest","Буэнос-Айрес":"Buenos Aires","Вадуц":"Vaduz","Валлетта":"Valletta","Варшава":"Warsaw","Ватикан":"Vatican City","Вашингтон":"Washington, D.C.","Великий Новгород":"Veliky Novgorod","Веллингтон":"Wellington","Вена":"Vienna","Виктория":"Victoria","Вильнюс":"Vilnius","Виндхук":"Windhoek","Владивосток":"Vladivostok","Владикавказ":"Vladikavkaz","Владимир":"Vladimir","Волгоград":"Volgograd","Вологда":"Vologda","Воронеж":"Voronezh","Вьентьян":"Vientiane","Габороне":"Gaborone","Гавана":"Havana","Гатчина":"Gatchina","Гватемала":"Guatemala City","Гитега":"Gitega","Горно-Алтайск":"Gorno-Altaysk","Грозный":"Grozny","Дакар":"Dakar","Дакка":"Dhaka","Дамаск":"Damascus","Джакарта":"Jakarta","Джибути":"Djibouti","Джорджтаун":"Georgetown","Джуба":"Juba","Дили":"Dili","Додома":"Dodoma","Донецк":"Donetsk","Доха":"Doha","Дублин":"Dublin","Душанбе":"Dushanbe","Екатеринбург":"Yekaterinburg","Ереван":"Yerevan","Загреб":"Zagreb","Иваново":"Ivanovo","Иерусалим":"Jerusalem","Ижевск":"Izhevsk","Иркутск":"Irkutsk","Исламабад":"Islamabad","Йошкар-Ола":"Yoshkar-Ola","Кабул":"Kabul","Казань":"Kazan","Каир":"Cairo","Калининград":"Kaliningrad","Калуга":"Kaluga","Кампала":"Kampala","Канберра":"Canberra","Каракас":"Caracas","Кастри":"Castries","Катманду":"Kathmandu","Кемерово":"Kemerovo","Кигали":"Kigali","Киев":"Kyiv","Кингстаун":"Kingstown","Кингстон":"Kingston","Киншаса":"Kinshasa","Киров":"Kirov","Кито":"Quito","Кишинёв":"Chișinău","Конакри":"Conakry","Копенгаген":"Copenhagen","Кострома":"Kostroma","Красногорск":"Krasnogorsk","Краснодар":"Krasnodar","Красноярск":"Krasnoyarsk","Куала-Лумпур":"Kuala Lumpur","Курган":"Kurgan","Курск":"Kursk","Кызыл":"Kyzyl","Либревиль":"Libreville","Лилонгве":"Lilongwe","Лима":"Lima","Липецк":"Lipetsk","Лиссабон":"Lisbon","Ломе":"Lomé","Лондон":"London","Луанда":"Luanda","Луганск":"Luhansk","Лусака":"Lusaka","Любляна":"Ljubljana","Люксембург":"Luxembourg","Магадан":"Magadan","Магас":"Magas","Маджуро":"Majuro","Мадрид":"Madrid","Майкоп":"Maykop","Малабо":"Malabo","Мале":"Malé","Манагуа":"Managua","Манама":"Manama","Манила":"Manila","Мапуту":"Maputo","Масеру":"Maseru","Маскат":"Muscat","Махачкала":"Makhachkala","Мбабане":"Mbabane","Мелитополь":"Melitopol","Мехико":"Mexico City","Минск":"Minsk","Могадишо":"Mogadishu","Монако":"Monaco","Монровия":"Monrovia","Монтевидео":"Montevideo","Морони":"Moroni","Москва":"Moscow","Мурманск":"Murmansk","Найроби":"Nairobi","Нальчик":"Nalchik","Нарьян-Мар":"Naryan-Mar","Нассау":"Nassau","Нгерулмуд":"Ngerulmud","Нджамена":"N'Djamena","Нейпьидо":"Naypyidaw","Ниамей":"Niamey","Нижний Новгород":"Nizhny Novgorod","Никосия":"Nicosia","Новосибирск":"Novosibirsk","Нуакшот":"Nouakchott","Нукуалофа":"Nuku'alofa","Нью-Дели":"New Delhi","Омск":"Omsk","Оренбург":"Orenburg","Орёл":"Oryol","Осло":"Oslo","Оттава":"Ottawa","Паликир":"Palikir","Панама":"Panama City","Парамарибо":"Paramaribo","Париж":"Paris","Пекин":"Beijing","Пенза":"Penza","Пермь":"Perm","Петрозаводск":"Petrozavodsk","Петропавловск-Камчатский":"Petropavlovsk-Kamchatsky","Пномпень":"Phnom Penh","Подгорица":"Podgorica","Порт-Вила":"Port Vila","Порт-Луи":"Port Louis","Порт-Морсби":"Port Moresby","Порт-о-Пренс":"Port-au-Prince","Порт-оф-Спейн":"Port of Spain","Порто-Ново":"Porto-Novo","Прага":"Prague","Прая":"Praia","Претория":"Pretoria","Псков":"Pskov","Пхеньян":"Pyongyang","Пятигорск":"Pyatigorsk","Рабат":"Rabat","Рейкьявик":"Reykjavík","Рига":"Riga","Рим":"Rome","Розо":"Roseau","Ростов-на-Дону":"Rostov-on-Don","Рязань":"Ryazan","Салехард":"Salekhard","Самара":"Samara","Сан-Марино":"San Marino","Сан-Сальвадор":"San Salvador","Сан-Томе":"São Tomé","Сан-Хосе":"San José","Сана":"Sana'a","Санкт-Петербург":"Saint Petersburg","Санто-Доминго":"Santo Domingo","Сантьяго":"Santiago","Сараево":"Sarajevo","Саранск":"Saransk","Саратов":"Saratov","Севастополь":"Sevastopol","Сент-Джонс":"Saint John's","Сент-Джорджес":"Saint George's","Сеул":"Seoul","Симферополь":"Simferopol","Сингапур":"Singapore","Скопье":"Skopje","Смоленск":"Smolensk","София":"Sofia","Ставрополь":"Stavropol","Стокгольм":"Stockholm","Сува":"Suva","Сукре":"Sucre","Сухум":"Sukhumi","Сыктывкар":"Syktyvkar","Таллин":"Tallinn","Тамбов":"Tambov","Ташкент":"Tashkent","Тбилиси":"Tbilisi","Тверь":"Tver","Тегеран":"Tehran","Тегусигальпа":"Tegucigalpa","Тирана":"Tirana","Токио":"Tokyo","Томск":"Tomsk","Триполи":"Tripoli","Тула":"Tula","Тунис":"Tunis","Тхимпху":"Thimphu","Тюмень":"Tyumen","Уагадугу":"Ouagadougou","Улан-Батор":"Ulaanbaatar","Улан-Удэ":"Ulan-Ude","Ульяновск":"Ulyanovsk","Уфа":"Ufa","Фритаун":"Freetown","Фунафути":"Funafuti","Хабаровск":"Khabarovsk","Ханой":"Hanoi","Ханты-Мансийск":"Khanty-Mansiysk","Хараре":"Harare","Хартум":"Khartoum","Хельсинки":"Helsinki","Херсон":"Kherson","Хониара":"Honiara","Цхинвал":"Tskhinvali","Чебоксары":"Cheboksary","Челябинск":"Chelyabinsk","Черкесск":"Cherkessk","Чита":"Chita","Шри-Джаяварденепура-Котте":"Sri Jayawardenepura Kotte","Элиста":"Elista","Эль-Кувейт":"Kuwait City","Эр-Рияд":"Riyadh","Южная Тарава":"South Tarawa","Южно-Сахалинск":"Yuzhno-Sakhalinsk","Якутск":"Yakutsk","Ямусукро":"Yamoussoukro","Ярен":"Yaren","Ярославль":"Yaroslavl","Яунде":"Yaoundé"};
 let LANG='ru';try{LANG=localStorage.getItem('gt_lang')==='en'?'en':'ru'}catch(e){}
 const TT=s=>(LANG==='en'&&typeof DICT!=='undefined'&&Object.prototype.hasOwnProperty.call(DICT,s)&&DICT[s])||s;   // перевод строки интерфейса
+Object.assign(DICT,{
+ 'Геотренажёр':'GeoTrainer',
+ 'Порядок классов':'Grade order',
+ 'Используйте стрелки, чтобы задать порядок классов на главной странице и в окне скачивания. Порядок попадёт в экспортируемый tests.json.':'Use the arrows to order grades on the home page and in the download dialog. The order is included in the exported tests.json.',
+ 'Вверх':'Move up',
+ 'Вниз':'Move down',
+ 'тестов':'tests',
+ 'карт':'maps',
+ 'В этом разделе пока нет тестов.':'There are no tests in this section yet.',
+ 'В этом разделе пока нет карт для изучения.':'There are no maps to study in this section yet.',
+ 'Без вопросов: изучайте карту и подписи объектов':'Study the map and object labels without quiz questions',
+ 'Нет классов для загрузки.':'No grades available for download.',
+ 'Скачать веб-приложение':'Download web app',
+ 'Карта не скачана. Откройте «Скачать веб-приложение» и сохраните пакет при подключении к интернету.':'This map is not downloaded. Open “Download web app” and save the package while online.',
+ 'Пакет этого класса ещё не скачан.':'This grade has not been downloaded yet.',
+ 'Класс':'Grade',
+ 'Скачать тесты и карты':'Download tests and maps',
+ 'Установить приложение':'Install app',
+ 'Не скачивать':'Not now',
+ 'Офлайн-доступ':'Offline access',
+ 'Выберите класс: будут скачаны все его тесты и необходимые карты для работы без интернета.':'Choose a grade to download all its tests and the maps required to use them offline.',
+ 'Все тесты и карты этого класса сохранены на устройстве.':'All tests and maps for this grade are saved on this device.',
+ 'Загрузка пакета не завершена. Нажмите «Скачать тесты и карты».':'The download is incomplete. Select “Download tests and maps” to try again.',
+ 'Не удалось проверить сохранённые файлы: ':'Could not check saved files: ',
+ 'Подготовка загрузки…':'Preparing download…',
+ 'Загружено':'Downloaded',
+ 'Этот класс не содержит тестов.':'There are no tests for this grade.',
+ 'Не удалось скачать офлайн-пакет: ':'Could not download the offline package: ',
+ 'Для офлайн-загрузки нужен HTTPS и поддержка Service Worker.':'Offline downloads require HTTPS and Service Worker support.',
+ 'Офлайн-сервис ещё запускается. Перезагрузите страницу и повторите попытку.':'The offline service is starting. Reload the page and try again.',
+ 'Истекло время загрузки.':'The download timed out.',
+ 'Не удалось сохранить файлы.':'Could not save the files.',
+ 'Установка доступна через меню браузера: «На экран Домой» на iPhone или «Установить приложение» в меню браузера.':'Install from the browser menu: “Add to Home Screen” on iPhone, or “Install app” on desktop.',
+ 'Подтвердите установку в окне браузера.':'Confirm installation in the browser prompt.',
+ 'Установка началась.':'Installation started.',
+ 'Установка отложена.':'Installation was dismissed.',
+ 'Приложение уже установлено.':'The app is already installed.',
+ 'Автоматическая установка недоступна: используйте меню браузера — «Поделиться» → «На экран Домой» на iPhone/iPad или «Установить приложение» на компьютере.':'Automatic installation is not available here. Use the browser menu: Share → Add to Home Screen on iPhone/iPad, or Install app on desktop.',
+ 'Не удалось открыть установку: ':'Could not open installation: ',
+ 'Войдите, чтобы сохранять результаты и следить за прогрессом.':'Sign in to save results and track progress.',
+ 'Результат сохранён на устройстве и будет отправлен в статистику при подключении к интернету.':'The result is saved on this device and will be sent to your statistics when you are back online.'
+});
 const TC=s=>(LANG==='en'&&typeof CDICT!=='undefined'&&Object.prototype.hasOwnProperty.call(CDICT,s)&&CDICT[s])||s;   // перевод столицы
 const LOC=LANG==='en'?'en':'ru';
 let TESTS=(typeof TESTS_DEFAULT!=='undefined')?TESTS_DEFAULT:[];
@@ -503,6 +564,17 @@ const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(
 const lab=it=>it.label||it.name.replace(/*nt*/'область'/*nt*/,/*nt*/'обл.'/*nt*/);
 const qn=t=>t.mode==='random'&&t.count>0?Math.min(t.count,t.items.length):t.mode==='groups'?(t.count||Object.values(t.quota||{}).reduce((a,b)=>a+b,0)):t.items.length;
 const grp=t=>t.group||(qn(t)>=10&&qn(t)<=15?'quick':'full');
+function orderedGrades(){
+ const grades=[...new Set(TESTS.map(t=>t.grade).filter(Boolean))];
+ const saved=Array.isArray(SET.gradeOrder)?[...new Set(SET.gradeOrder.filter(g=>grades.includes(g)))]:[];
+ const natural=(a,b)=>{
+  const courseA=/курс/i.test(a),courseB=/курс/i.test(b);
+  if(courseA!==courseB)return courseA?1:-1;
+  const numberA=+(String(a).match(/\d+/)||[])[0]||0,numberB=+(String(b).match(/\d+/)||[])[0]||0;
+  return numberA-numberB||a.localeCompare(b,'ru');
+ };
+ return [...saved,...grades.filter(g=>!saved.includes(g)).sort(natural)];
+}
 // секунд на вопрос: у теста своё значение, иначе общее — только для быстрых тестов «на оценку»
 const timerOf=t=>{if(!t)return 0;const v=t.timer;if(v!==undefined&&v!==null&&v!==''&&!isNaN(+v))return Math.max(0,Math.floor(+v));return grp(t)==='quick'?Math.max(0,Math.floor(+SET.timer||0)):0};
 let FILEVER='';
@@ -524,24 +596,24 @@ function loadStore(){try{const s=localStorage.getItem(SKEY);if(s){const j=JSON.p
  try{const k=localStorage.getItem(CKEY);if(k){if(!STORE.users[k])STORE.users[k]={name:k,attempts:[]};USER=STORE.users[k];USER.key=k}}catch(e){}}
 function saveStore(){_mem=STORE;try{localStorage.setItem(SKEY,JSON.stringify(STORE))}catch(e){}}
 const clean=a=>{const o={...a};delete o.pend;return o};
-async function pushPending(){if(!REMOTE||!USER)return true;let ok=true;
+async function pushPending(){if(!REMOTE||!USER)return true;if(!navigator.onLine)return false;let ok=true;
  for(const a of USER.attempts.filter(x=>x.pend)){try{await rpc('gt_add_attempt',{p_key:USER.key,p_name:USER.name,p_a:clean(a)});delete a.pend}catch(e){ok=false;break}}
  saveStore();return ok}
-async function syncUser(){if(!REMOTE||!USER){return false}
+async function syncUser(){if(!REMOTE||!USER||!navigator.onLine){return false}
  try{if(!USER.migrated){USER.attempts.forEach(a=>{a.pend=true});USER.migrated=1}   // то, что накоплено до подключения сервера, отправим туда
-  await rpc('gt_login',{p_key:USER.key,p_name:USER.name});await pushPending();
+  await rpc('gt_login',{p_key:USER.key,p_name:USER.name});const uploaded=await pushPending();
   const srv=await rpc('gt_my_attempts',{p_key:USER.key}),pend=USER.attempts.filter(x=>x.pend),seen=new Set(srv.map(x=>x.ts+x.id));
-  USER.attempts=[...srv,...pend.filter(x=>!seen.has(x.ts+x.id))].sort((a,b)=>a.ts-b.ts);saveStore();SYNC='ok';return true}
+  USER.attempts=[...srv,...pend.filter(x=>!seen.has(x.ts+x.id))].sort((a,b)=>a.ts-b.ts);saveStore();SYNC=uploaded?'ok':'err';return uploaded}
  catch(e){SYNC='err';return false}}
 async function loginAs(name){name=(name||'').trim().replace(/\s+/g,' ').slice(0,30);if(!name)return false;const key=name.toLowerCase();
  if(!STORE.users[key])STORE.users[key]={name,attempts:[]};STORE.users[key].last=Date.now();USER=STORE.users[key];USER.key=key;
- try{localStorage.setItem(CKEY,key)}catch(e){}saveStore();if(REMOTE)await syncUser();return true}
+ try{localStorage.setItem(CKEY,key)}catch(e){}saveStore();if(REMOTE&&navigator.onLine)await syncUser();return true}
 function logout(){const k=USER&&USER.key;USER=null;try{localStorage.removeItem(CKEY)}catch(e){}
  // с сервером: копия на этом устройстве не нужна — удаляем (кроме ещё не отправленных попыток)
  if(REMOTE&&k&&STORE.users[k]&&!STORE.users[k].attempts.some(x=>x.pend)){delete STORE.users[k];saveStore()}}
 function recordAttempt(a){if(!USER)return;const t=a.test;
  USER.attempts.push({ts:Date.now(),id:t.id,title:(t._ru||t).title,grade:t.grade||'',n:a.N,good:a.good,mark:a.gr,mp:a.mp,cp:a.cp,cn:a.cn,qn:a.qn,qok:a.qok,early:!!a.early,retry:!!a.retry,errs:a.errs,pend:REMOTE||undefined});
- if(USER.attempts.length>500)USER.attempts.splice(0,USER.attempts.length-500);saveStore();if(REMOTE)pushPending().then(ok=>{SYNC=ok?'ok':'err'})}
+ if(USER.attempts.length>500)USER.attempts.splice(0,USER.attempts.length-500);saveStore();if(REMOTE&&navigator.onLine)pushPending().then(ok=>{SYNC=ok?'ok':'err'})}
 const fdate=ts=>new Date(ts).toLocaleString(LANG==='en'?'en-GB':'ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'});
 const real=list=>(list.attempts||list).filter(x=>!x.retry);   // «Повторить ошибки» в оценки не идёт
 const pct=x=>x.n?Math.round(100*x.good/x.n):0;
@@ -676,6 +748,79 @@ let HOMEANIM=true;
 function revealIn(root){const l=root.querySelectorAll('[data-reveal]');if(!('IntersectionObserver' in window)){l.forEach(e=>e.classList.add('is-visible'));return}
  const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add('is-visible');io.unobserve(x.target)}}),{threshold:.01});l.forEach(e=>io.observe(e))}
 function nav(id){const go=()=>{const e=$(id);if(e)e.scrollIntoView({behavior:'smooth',block:'start'})};if(CURV!=='home'){location.hash='';home();requestAnimationFrame(go)}else go()}
+function offlineClassCacheName(grade){const version=String(FILEVER||'current').replace(/[^a-z0-9_-]/gi,'');return'geotrainer-class-v3-'+encodeURIComponent(grade)+'-'+version}
+function openOfflineDialog(){
+ const grades=orderedGrades();
+ if(!grades.length)return alert(TT('Нет классов для загрузки.'));
+ const dialog=h('dialog',{className:'offline-dialog','aria-labelledby':'offline-title'});
+ const select=h('select',{'aria-label':TT('Класс')});
+ const initial=grades.includes(GRADE)?GRADE:grades[0];
+ grades.forEach(g=>select.append(h('option',{value:g,selected:g===initial},g+' · '+TESTS.filter(t=>t.grade===g).length)));
+ const status=h('p',{className:'offline-status','aria-live':'polite'},TT('Пакет этого класса ещё не скачан.'));
+ const progress=h('progress',{className:'offline-progress',max:1,value:0,hidden:true});
+ const installHint=h('p',{className:'offline-install-hint',hidden:true});
+ const download=h('button',{className:'btn',type:'button',on:{click:downloadSelected}},TT('Скачать тесты и карты'));
+ const install=h('button',{className:'btn ghost',type:'button',on:{click:installApp}},TT('Установить приложение'));
+ const close=h('button',{className:'btn ghost',type:'button',on:{click:()=>dialog.close()}},TT('Не скачивать'));
+ dialog.append(h('h2',{id:'offline-title'},TT('Офлайн-доступ')),
+  h('p',{},TT('Выберите класс: будут скачаны все его тесты и необходимые карты для работы без интернета.')),
+  h('label',{className:'offline-grade'},TT('Класс'),select),
+  status,progress,installHint,h('div',{className:'offline-actions'},download,install,close));
+ dialog.addEventListener('close',()=>dialog.remove());
+ dialog.addEventListener('click',e=>{if(e.target===dialog)dialog.close()});
+ document.body.append(dialog);dialog.showModal();
+ select.addEventListener('change',refreshStatus);
+ refreshStatus();
+
+ async function refreshStatus(){
+  try{
+   const name=offlineClassCacheName(select.value),names=await caches.keys();
+   if(!names.includes(name)){status.textContent=TT('Пакет этого класса ещё не скачан.');return}
+   const cache=await caches.open(name),manifest=await cache.match(location.origin+'/__offline_class_manifest__');
+   status.textContent=manifest?TT('Все тесты и карты этого класса сохранены на устройстве.'):TT('Загрузка пакета не завершена. Нажмите «Скачать тесты и карты».');
+  }catch(error){status.textContent=TT('Не удалось проверить сохранённые файлы: ')+error.message}
+ }
+ async function downloadSelected(){
+  const grade=select.value,tests=TESTS.filter(t=>t.grade===grade),maps=[...new Set(tests.map(t=>t.map))];
+  if(!tests.length){status.textContent=TT('Этот класс не содержит тестов.');return}
+  download.disabled=true;select.disabled=true;progress.hidden=false;progress.value=0;progress.max=1;
+  status.textContent=TT('Подготовка загрузки…');
+  try{
+   await requestClassDownload(grade,maps,data=>{
+    progress.max=data.total;progress.value=data.completed;
+    status.textContent=TT('Загружено')+' '+data.completed+' / '+data.total+': '+data.file;
+   });
+   progress.value=progress.max;
+   status.textContent=TT('Все тесты и карты этого класса сохранены на устройстве.');
+  }catch(error){status.textContent=TT('Не удалось скачать офлайн-пакет: ')+error.message}
+  finally{download.disabled=false;select.disabled=false;refreshStatus()}
+ }
+ async function installApp(){
+  if(!window.installGeoTrainer){installHint.hidden=false;installHint.textContent=TT('Установка доступна через меню браузера: «На экран Домой» на iPhone или «Установить приложение» в меню браузера.');return}
+  try{
+   const result=await window.installGeoTrainer();
+   installHint.hidden=false;
+   installHint.textContent=result.status==='accepted'?TT('Установка началась.'):result.status==='dismissed'?TT('Установка отложена.'):result.status==='installed'?TT('Приложение уже установлено.'):TT('Автоматическая установка недоступна: используйте меню браузера — «Поделиться» → «На экран Домой» на iPhone/iPad или «Установить приложение» на компьютере.');
+  }catch(error){installHint.hidden=false;installHint.textContent=TT('Не удалось открыть установку: ')+error.message}
+ }
+}
+async function requestClassDownload(grade,maps,onProgress){
+ if(!('serviceWorker'in navigator)||!('caches'in window))throw new Error(TT('Для офлайн-загрузки нужен HTTPS и поддержка Service Worker.'));
+ const registration=await navigator.serviceWorker.getRegistration('/');
+ const worker=registration&&registration.active;
+ if(!worker)throw new Error(TT('Офлайн-сервис ещё запускается. Перезагрузите страницу и повторите попытку.'));
+ return new Promise((resolve,reject)=>{
+  const channel=new MessageChannel(),timeout=setTimeout(()=>{channel.port1.close();reject(new Error(TT('Истекло время загрузки.')))},600000);
+  channel.port1.onmessage=event=>{
+   const data=event.data||{};
+   if(data.type==='progress'){onProgress(data);return}
+   clearTimeout(timeout);channel.port1.close();
+   if(data.type==='done')resolve(data);else reject(new Error(data.message||TT('Не удалось сохранить файлы.')));
+  };
+  try{worker.postMessage({type:'CACHE_CLASS',grade,maps,version:String(FILEVER||'current')},[channel.port2])}
+  catch(error){clearTimeout(timeout);channel.port1.close();reject(error)}
+ });
+}
 function home(keep){const sy=window.scrollY||0;const wasHome=CURV==='home';const fe=$('gradefilters');const off=(keep&&wasHome&&fe)?fe.getBoundingClientRect().top:null;show('home');const p=$('home');p.innerHTML='';const anim=HOMEANIM&&!keep;HOMEANIM=false;
  const R=(el,d)=>{if(anim){el.setAttribute('data-reveal','');if(d)el.style.setProperty('--d',d+'ms')}return el};
  const inG=t=>GRADE==='all'||t.grade===GRADE;
@@ -692,34 +837,42 @@ function home(keep){const sy=window.scrollY||0;const wasHome=CURV==='home';const
  THEMES.forEach(t=>th.append(h('button',{className:'chip'+(t.id===THEME?' on':''),'aria-pressed':t.id===THEME?'true':'false',on:{click:()=>{THEME=t.id;THEME_AUTO=false;try{sessionStorage.setItem('gt_theme',THEME)}catch(e){}home(true)}}},
    h('span',{className:'sw',style:`background:linear-gradient(90deg,${t.sw[0]} 0 34%,${t.sw[1]} 34% 67%,${t.sw[2]} 67%)`}),t.name)));
  // --- фильтр по классам
- const grades=[...new Set(TESTS.map(t=>t.grade).filter(Boolean))].sort();
+ const grades=orderedGrades();
  const cnt=g=>TESTS.filter(t=>g==='all'||t.grade===g).length;
  const gf=h('div',{id:'gradefilters',className:'filters',role:'group','aria-label':TT('Класс')});
  [['all',TT('Все классы')],...grades.map(g=>[g,TT(g)])].forEach(([g,n])=>gf.append(h('button',{className:'chip'+(g===GRADE?' on':''),'aria-pressed':g===GRADE?'true':'false',on:{click:()=>{GRADE=g;try{sessionStorage.setItem('gt_grade',g)}catch(e){}home(true)}}},n,h('small',{},''+cnt(g)))));
  const quick=TESTS.filter(t=>inG(t)&&grp(t)==='quick'),full=TESTS.filter(t=>inG(t)&&grp(t)!=='quick');
- const sh=(t,s)=>h('div',{className:'sub-head'},h('h3',{},t),h('span',{},s));
  const rows=l=>h('div',{className:'rows'},l.map(t=>rowBtn(t.title,meta(t),TT(t.grade||''),()=>start(t),t.id)));
+ const disclosure=(title,description,list,content,countLabel=TT('тестов'))=>{
+  const details=h('details',{className:'test-disclosure'});
+  details.append(h('summary',{},h('span',{className:'disclosure-copy'},h('strong',{},title),h('small',{},description)),
+   h('span',{className:'disclosure-count'},list.length+' '+countLabel)));
+  details.append(content||(list.length?rows(list):h('p',{className:'empty'},TT('В этом разделе пока нет тестов.'))));
+  return details;
+ };
  const sTests=h('section',{className:'section',id:'sec-tests'},h('div',{className:'container'},
-  R(h('div',{className:'section-head'},h('span',{className:'section-index'},'01'),h('h2',{},TT('Тесты')),h('p',{},TT('Выберите класс и тест. На карте нужно найти регион или страну, затем назвать столицу или административный центр.'))),0),gf));
+  R(h('div',{className:'section-head'},h('span',{className:'section-index'},'01'),h('h2',{},TT('Тесты')),h('p',{},TT('Выберите класс и тест. На карте нужно найти регион или страну, затем назвать столицу или административный центр.'))),0),gf,
+  disclosure(TT('Быстрые тесты на оценку'),TT('10–15 вопросов, случайные из списка'),quick),
+  disclosure(TT('Полные тесты'),TT('весь список объектов'),full)));
  const box=sTests.firstChild;
- if(quick.length)box.append(sh(TT('Быстрые тесты на оценку'),TT('10–15 вопросов, случайные из списка')),R(rows(quick),60));
- if(full.length)box.append(sh(TT('Полные тесты'),TT('весь список объектов')),R(rows(full),60));
- if(!quick.length&&!full.length)box.append(h('p',{className:'empty'},TT('Тестов пока нет.')));
  // --- изучение
- const seen=new Set(),sg=h('div',{className:'rows'});
+ const seen=new Set(),studyItems=[],sg=h('div',{className:'rows'});
  TESTS.filter(inG).forEach(t=>{const k=t.map+':'+t.items.map(i=>i.id).sort().join();if(seen.has(k)||!t.items.length||t.study===false)return;seen.add(k);
+  studyItems.push(t);
   sg.append(rowBtn(t.studyTitle||t.title,(MAPS[t.map]?MAPS[t.map].title:t.map)+TT(' · объектов: ')+t.items.length+(t.items.some(i=>i.capital)?' · '+(t.capMeta?TT('с центрами'):TT('с подписями столиц')):''),TT('Изучать'),()=>study(t)))});
- const sStudy=h('section',{className:'section',id:'sec-study'},h('div',{className:'container'},
-  R(h('div',{className:'section-head'},h('span',{className:'section-index'},'02'),h('h2',{},TT('Изучение карты')),h('p',{},TT('Без вопросов: двигайте карту, смотрите подписи, нажимайте на объекты — появятся краткие сведения.'))),0),R(sg,60)));
+ box.append(disclosure(TT('Изучение карты'),TT('Без вопросов: изучайте карту и подписи объектов'),studyItems,
+  sg.children.length?sg:h('p',{className:'empty'},TT('В этом разделе пока нет карт для изучения.')),TT('карт')));
  const hero=h('section',{className:'hero'},h('div',{className:'container'},
   R(h('span',{className:'eyebrow'},TT('Интерактивные карты · 7–11 классы')),0),
   R(h('h1',{},TT('Геотренажёр')),80),
-  R(h('p',{className:'lead'},TT('Находите объекты на карте, называйте столицы и административные центры, проходите быстрые тесты на оценку. Результаты не сохраняются — виден только итог текущей сессии.')),160),
+  R(h('p',{className:'lead'},TT('Находите объекты на карте, называйте столицы и административные центры, проходите быстрые тесты на оценку. Войдите, чтобы сохранять результаты и следить за прогрессом.')),160),
   R(h('div',{className:'settings'},h('span',{className:'settings-label'},TT('Оформление карты')),th),220),
   R(h('div',{className:'settings'},h('span',{className:'settings-label'},TT('Язык')),h('div',{className:'themes'},[['ru','RU'],['en','EN']].map(([c,n])=>h('button',{className:'chip'+(c===LANG?' on':''),'aria-pressed':c===LANG?'true':'false',on:{click:()=>{if(c===LANG)return;try{localStorage.setItem('gt_lang',c)}catch(e){}location.reload()}}},n)))),240),
   R(h('div',{className:'settings'},h('span',{className:'settings-label'},TT('Пользователь')),USER?[h('span',{className:'chip on',style:'cursor:default'},USER.name),h('button',{className:'chip',on:{click:()=>{location.hash='#stats'}}},TT('Моя статистика')),h('button',{className:'chip',on:{click:()=>{logout();home(true)}}},TT('Выйти'))]:[h('span',{className:'chip',style:'cursor:default'},TT('Без входа — результаты не сохраняются')),h('button',{className:'chip on',on:{click:()=>loginBox(()=>home(true))}},TT('Войти'))]),260)));
- hero.querySelector('.container').append(R(h('div',{className:'hero-actions'},h('a',{className:'btn',href:'globe.html'},TT('Открыть глобус'))),300));
- p.append(hero,sTests,sStudy);
+ hero.querySelector('.container').append(R(h('div',{className:'hero-actions'},
+  h('a',{className:'btn',href:'globe.html'},TT('Открыть глобус')),
+  h('button',{className:'btn',type:'button',on:{click:openOfflineDialog}},TT('Скачать веб-приложение'))),300));
+ p.append(hero,sTests);
  if(anim)revealIn(p);
  if(off!==null){const f2=$('gradefilters');if(f2)window.scrollBy(0,f2.getBoundingClientRect().top-off)}}
 
@@ -774,7 +927,8 @@ function layout(){if(!STUDY||!M)return;const r=svg.getBoundingClientRect();if(!r
    const b=l.kind==='name'?[px-w/2,y-hh/2,px+w/2,y+hh/2]:[px+6,y-hh/2,px+6+w,y+hh/2];
    if(b[2]>0&&b[0]<r.width&&b[3]>0&&b[1]<r.height&&!hit(b)){placed.push(b);ok=true;l.el.setAttribute('y',l.y+off*s);if(l.kind==='cap')l.el.setAttribute('x',l.x+6*s);break}}
   l.el.style.display=ok?'':'none'})}
-function study(t){T=t;STUDY=true;$('fcl').textContent=t.cw?TT('Центры'):TT('Столицы');selId=null;SL=[];loadMap(t.map);items=t.items.filter(i=>els[i.id]);
+function ensureMapAvailable(t){if(MAPS[t.map])return true;alert(TT('Карта не скачана. Откройте «Скачать веб-приложение» и сохраните пакет при подключении к интернету.'));return false}
+function study(t){if(!ensureMapAvailable(t))return;T=t;STUDY=true;$('fcl').textContent=t.cw?TT('Центры'):TT('Столицы');selId=null;SL=[];loadMap(t.map);items=t.items.filter(i=>els[i.id]);
  const ids=new Set(items.map(i=>i.id));if(M.layered)ids.add('RU');for(const k in els)els[k].forEach(e=>{const x=!ids.has(k);e.classList.toggle('x',x);if(x&&e.tagName==='path'&&!M.layered)G.prepend(e)});
  applyTheme();setStudyUI(true);const mk=(tag,cls,x,y,txt)=>{const e=document.createElementNS(NS,tag);e.setAttribute('class',cls);e.setAttribute(tag==='text'?'x':'cx',x);e.setAttribute(tag==='text'?'y':'cy',y);if(tag==='text'){e.setAttribute('dy','.35em');e.textContent=txt}GL.append(e);return e};
  items.forEach(it=>{const o=M.objs.find(x=>x.id===it.id);if(!o)return;
@@ -811,7 +965,7 @@ const unmark=(id,c)=>(els[id]||[]).forEach(e=>e.classList.remove(c));
 function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),1500)}
 function nameOf(id){const i=T.items.find(x=>x.id===id);return i?i.name:(M.objs.find(o=>o.id===id)||{}).name||'?'}
 let RETRY=false;
-function start(t,only){RUN++;RETRY=!!only;T=t;pool=null;STUDY=false;SL=[];setStudyUI(false);loadMap(t.map);items=t.items.filter(i=>els[i.id]);
+function start(t,only){if(!ensureMapAvailable(t))return;RUN++;RETRY=!!only;T=t;pool=null;STUDY=false;SL=[];setStudyUI(false);loadMap(t.map);items=t.items.filter(i=>els[i.id]);
  const ids=new Set(items.map(i=>i.id));if(M.layered)ids.add('RU');for(const k in els)els[k].forEach(e=>{const x=!ids.has(k);e.classList.toggle('x',x);if(x&&e.tagName==='path'&&!M.layered)G.prepend(e)});
  let qq=only?items.filter(i=>only.includes(i.id)):items;
  if(!only&&t.mode==='random'&&t.count>0)qq=shuffle(qq).slice(0,Math.min(t.count,qq.length));
@@ -877,7 +1031,7 @@ function finish(skip){RUN++;tmStop();const r=$('result');show('result');r.innerH
    h('td',{className:x.mapOk?'okc':'badc'},x.mapOk?TT('верно'):(x.to==='map'?TT('Время вышло'):x.tries>=3?TT('не найден'):TT('не с первой'))),cn?h('td',{className:x.capOk?'okc':'badc'},x.capOk===null?'':x.capOk?TT('верно'):(x.to==='cap'?TT('Время вышло'):TT('ошибка'))):'',res.some(x=>x.qn)?h('td',{className:x.qn&&x.qok*2>=x.qn?'okc':'badc'},x.qn?x.qok+' / '+x.qn:'—'):'')));r.append(t)}
  const qsum=res.reduce((a,x)=>a+(x.qn||0),0),att={test:T,N,good,gr,mp,cp,cn,qn:qsum||undefined,qok:qsum?res.reduce((a,x)=>a+(x.qok||0),0):undefined,early:res.length<N,retry:RETRY,errs:bad.map(x=>x.it._n||x.it.name)};
  if(!skip)recordAttempt(att);
- if(USER)r.append(h('p',{className:'sub'},TT('Результат сохранён в статистике: ')+USER.name));
+ if(USER)r.append(h('p',{className:'sub'},USER.name+' · '+TT('Результат сохранён на устройстве и будет отправлен в статистику при подключении к интернету.')));
  else r.append(h('div',{className:'row'},h('span',{className:'sub',style:'margin:0'},TT('Вы не вошли — результат не сохранён.')),h('button',{className:'btn ghost sm',on:{click:()=>loginBox(()=>{recordAttempt(att);finish(true)})}},TT('Войти и сохранить'))));
  const row=h('div',{className:'row'});
  if(bad.length)row.append(h('button',{className:'btn',on:{click:()=>start(T,bad.map(x=>x.it.id))}},TT('Повторить ошибки')));
@@ -891,6 +1045,19 @@ function gate(){let ok=false;try{ok=sessionStorage.getItem('gt_auth')==='1'}catc
  inp.addEventListener('keydown',e=>{if(e.key==='Enter')go()});
  p.append(h('h1',{},TT('Вход для администратора')),h('div',{className:'row'},h('div',{className:'grow'},inp),h('button',{className:'btn',on:{click:go}},TT('Войти'))),err,h('button',{className:'lnk',on:{click:()=>{location.hash='';home()}}},TT('← К списку тестов')));inp.focus()}
 let ai=0,aSave=()=>{try{localStorage.setItem('gt_admin',JSON.stringify({tests:TESTS,settings:SET,ver:FILEVER}))}catch(e){}};
+function gradeOrderEditor(p){
+ const grades=orderedGrades(),list=h('div',{className:'grade-order'});
+ grades.forEach((grade,index)=>{
+  const controls=h('div',{className:'row'});
+  [-1,1].forEach((direction)=>{
+   const label=direction<0?TT('Вверх'):TT('Вниз');
+   controls.append(h('button',{className:'btn ghost sm',type:'button','aria-label':label,disabled:index+direction<0||index+direction>=grades.length,
+    on:{click:()=>{const order=grades.slice();[order[index],order[index+direction]]=[order[index+direction],order[index]];SET.gradeOrder=order;aSave();const y=window.scrollY;admin();window.scrollTo(0,y)}}},direction<0?'↑':'↓'));
+  });
+  list.append(h('div',{className:'grade-order-item'},h('span',{},(index+1)+'. '+grade),controls));
+ });
+ p.append(h('h2',{},TT('Порядок классов')),h('p',{className:'sub'},TT('Используйте стрелки, чтобы задать порядок классов на главной странице и в окне скачивания. Порядок попадёт в экспортируемый tests.json.')),list);
+}
 function admin(){try{const s=localStorage.getItem('gt_admin');if(s&&!admin.loaded){const j=JSON.parse(s);if(!j||Array.isArray(j)||j.ver!==FILEVER){localStorage.removeItem('gt_admin')}else{TESTS=j.tests||TESTS;SET=Object.assign(SET,j.settings||{})}}}catch(e){}admin.loaded=1;show('admin');
  const p=$('admin');p.innerHTML='';
  p.append(h('h1',{},TT('Администратор')),h('p',{className:'sub'},TT('Создавайте тесты: выберите карту, отметьте объекты, впишите столицы. Изменения сохраняются в этом браузере; для публикации на сайте нажмите «Экспорт».')));
@@ -902,6 +1069,7 @@ function admin(){try{const s=localStorage.getItem('gt_admin');if(s&&!admin.loade
   h('button',{className:'btn ghost',on:{click:()=>{if(!TESTS[ai])return;const c=JSON.parse(JSON.stringify(TESTS[ai]));c.id+='_copy'+Date.now()%1000;c.title+=TT(' (копия)');TESTS.push(c);ai=TESTS.length-1;aSave();admin()}}},TT('Дублировать')),
   h('button',{className:'btn ghost',on:{click:()=>{if(TESTS[ai]&&confirm(TT('Удалить тест?'))){TESTS.splice(ai,1);ai=0;aSave();admin()}}}},TT('Удалить'))));
  const t=TESTS[ai];if(t){editor(p,t)}
+ gradeOrderEditor(p);
  p.append(h('h2',{},TT('Шкала оценок')));SET.scale=SET.scale||{5:90,4:70,3:50};
  p.append(h('div',{className:'row'},...[5,4,3].map(g=>h('label',{},'«'+g+TT('» от '),h('input',{type:'number',min:1,max:100,value:SET.scale[g],style:'width:70px',oninput:e=>{SET.scale[g]=+e.target.value||SET.scale[g];aSave()}}),' % '))),h('p',{className:'stat'},TT('Для теста из 10 вопросов: 90/70/50 % = 9–10 → 5, 7–8 → 4, 5–6 → 3, меньше 5 → 2.')));
  p.append(h('h2',{},TT('Таймер')),h('div',{className:'row'},h('label',{},TT('Таймер на вопрос в быстрых тестах'),': ',h('input',{type:'number',min:0,max:600,value:SET.timer??30,style:'width:80px',oninput:e=>{SET.timer=Math.max(0,Math.floor(+e.target.value||0));aSave()}}),' ',TT('сек (0 — без таймера)'))));
@@ -962,13 +1130,17 @@ document.documentElement.lang=LANG;if(window.NmchvTheme)NmchvTheme.refresh();if(
 function route(){const hs=location.hash;if(LANG==='en'&&(hs==='#admin')===OVL)return location.reload();   // админка работает с исходными (русскими) данными
  if(hs==='#admin')return gate();if(hs==='#stats')return statsView();const m=hs.match(/^#t=(.+)$/);
  if(m){const t=TESTS.find(x=>x.id===decodeURIComponent(m[1]));if(t)return start(t)}home()}
+function retryPendingSync(){if(!USER||!REMOTE||!navigator.onLine||!USER.attempts.some(a=>a.pend))return;syncUser().then(()=>{if(CURV==='stats')statsView(true)})}
 addEventListener('hashchange',route);
-fetch('tests.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{if(Array.isArray(j)&&j.length)TESTS=j;else if(j&&j.tests&&j.tests.length){TESTS=j.tests;SET=Object.assign(SET,j.settings||{})}}).catch(()=>{}).finally(()=>{loadStore();FILEVER=vhash(JSON.stringify(TESTS)+JSON.stringify(SET.scale)+SET.timer+SET.adminHash);if(LANG==='en'&&location.hash!=='#admin')localize();if(USER&&REMOTE)syncUser().then(()=>{if(CURV==='home')home(true)});route()});
+addEventListener('online',retryPendingSync);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)retryPendingSync()});
+fetch('tests.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject()).then(j=>{if(Array.isArray(j)&&j.length)TESTS=j;else if(j&&j.tests&&j.tests.length){TESTS=j.tests;SET=Object.assign(SET,j.settings||{})}}).catch(()=>{}).finally(()=>{loadStore();FILEVER=vhash(JSON.stringify(TESTS)+JSON.stringify(SET.scale)+SET.timer+SET.adminHash);if(LANG==='en'&&location.hash!=='#admin')localize();if(USER&&REMOTE&&navigator.onLine)syncUser().then(()=>{if(CURV==='home')home(true)});route()});
 
 
 // ---------- подвал
 $('uplink').onclick=()=>window.scrollTo({top:0,behavior:'smooth'});
 $('adminlink').onclick=()=>{location.hash='#admin'};
 
+</script>
 <script src="/pwa.js"></script>
-</script></body></html>
+</body></html>

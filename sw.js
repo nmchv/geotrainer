@@ -1,37 +1,37 @@
 /* GeoTrainer service worker: офлайн-кэш + push-уведомления */
 
-const CACHE = 'geotrainer-v1'; // меняйте номер, когда хотите принудительно сбросить кэш
-
-// Файлы из корня репозитория. Если какого-то нет, остальные всё равно закэшируются.
+const CACHE = 'geotrainer-shell-v3';
+const CLASS_CACHE_PREFIX = 'geotrainer-class-v3-';
 const PRECACHE = [
   '/',
   '/index.html',
   '/config.js',
+  '/theme.js',
+  '/pwa.js',
   '/maps.js',
-  '/maps2.js',
-  '/maps3.js',
-  '/maps4.js',
-  '/maps5.js',
-  '/maps6.js',
-  '/rivers.js',
   '/tests.json',
   '/manifest.webmanifest',
+  '/icons/apple-touch-icon.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE).then((cache) =>
-      Promise.all(PRECACHE.map((url) => cache.add(url).catch(() => {})))
-    ).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      .then((cache) => cache.addAll(PRECACHE))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((key) =>
+        key === 'geotrainer-v1' ||
+        (key.startsWith('geotrainer-shell-') && key !== CACHE) ||
+        (key.startsWith('geotrainer-class-') && !key.startsWith(CLASS_CACHE_PREFIX))
+      ).map((key) => caches.delete(key))))
       .then(() => self.clients.claim())
   );
 });
@@ -46,33 +46,121 @@ self.addEventListener('fetch', (event) => {
   // Страницы: сначала сеть, при отсутствии интернета берём из кэша
   if (req.mode === 'navigate') {
     event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
-          return res;
-        })
-        .catch(() => caches.match(req).then((r) => r || caches.match('/index.html')))
+      (async () => {
+        try {
+          const response = await fetch(req);
+          await caches.open(CACHE).then((cache) => cache.put(req, response.clone()));
+          return response;
+        } catch (error) {
+          const cached = await caches.match(req) || await caches.match('/index.html');
+          if (cached) return cached;
+          throw error;
+        }
+      })()
     );
     return;
   }
 
-  // Остальное: из кэша сразу, в фоне обновляем
+  if (url.pathname === '/tests.json') {
+    event.respondWith(
+      (async () => {
+        try {
+          const response = await fetch(req);
+          if (response.ok) await caches.open(CACHE).then((cache) => cache.put(req, response.clone()));
+          return response;
+        } catch (error) {
+          const cached = await caches.match(req);
+          if (cached) return cached;
+          throw error;
+        }
+      })()
+    );
+    return;
+  }
+
+  // Refresh current assets while retaining cached responses for offline use.
   event.respondWith(
-    caches.match(req).then((cached) => {
-      const network = fetch(req)
-        .then((res) => {
-          if (res && res.ok) {
-            const copy = res.clone();
-            caches.open(CACHE).then((c) => c.put(req, copy));
-          }
-          return res;
-        })
-        .catch(() => cached);
-      return cached || network;
-    })
+    (async () => {
+      try {
+        const response = await fetch(req);
+        if (response.ok) await caches.open(CACHE).then((cache) => cache.put(req, response.clone()));
+        return response;
+      } catch (error) {
+        const cached = await caches.match(req);
+        if (cached) return cached;
+        throw error;
+      }
+    })()
   );
 });
+
+const MAP_BUNDLES = {
+  europe: '/maps.js', world: '/maps.js',
+  russia: '/maps2.js', asia: '/maps2.js', africa: '/maps2.js',
+  namerica: '/maps3.js', samerica: '/maps3.js', oceania: '/maps3.js', fo: '/maps3.js', cfo: '/maps3.js',
+  szfo: '/maps4.js', yufo: '/maps4.js', skfo: '/maps4.js', pfo: '/maps4.js', urfo: '/maps4.js', sfo: '/maps4.js',
+  dfo: '/maps5.js', szyu: '/maps5.js', skpu: '/maps5.js',
+  sibdv: '/maps6.js'
+};
+const CLASS_ASSETS = [
+  '/index.html', '/config.js', '/theme.js', '/pwa.js', '/tests.json',
+  '/globe.html', '/globe-data.js', '/maplibre-gl.js', '/maplibre-gl.css',
+  '/rivers.js', '/satellite.js', '/manifest.webmanifest',
+  '/icons/apple-touch-icon.png', '/icons/icon-192.png', '/icons/icon-512.png'
+];
+
+self.addEventListener('message', (event) => {
+  if (!event.data || event.data.type !== 'CACHE_CLASS') return;
+  const port = event.ports[0];
+  if (!port) return;
+  event.waitUntil(cacheClass(event.data, port).catch((error) => {
+    port.postMessage({ type: 'error', message: error.message });
+  }));
+});
+
+async function cacheClass(data, port) {
+  const grade = typeof data.grade === 'string' ? data.grade.trim() : '';
+  const maps = Array.isArray(data.maps) ? data.maps : [];
+  const version = typeof data.version === 'string' ? data.version.replace(/[^a-z0-9_-]/gi, '') : '';
+  if (!grade || !version || !maps.length) throw new Error('Не указаны класс, карты или версия тестов.');
+
+  const bundles = [...new Set(maps.map((map) => {
+    const bundle = MAP_BUNDLES[map];
+    if (!bundle) throw new Error(`Неизвестная карта: ${map}`);
+    return bundle;
+  }))];
+  const assets = [...new Set([...CLASS_ASSETS, ...bundles])];
+  const cacheName = CLASS_CACHE_PREFIX + encodeURIComponent(grade) + '-' + version;
+  const existing = await caches.open(cacheName);
+  if (await existing.match('/__offline_class_manifest__')) {
+    port.postMessage({ type: 'done', total: assets.length });
+    return;
+  }
+  await caches.delete(cacheName);
+  const cache = await caches.open(cacheName);
+
+  try {
+    for (let index = 0; index < assets.length; index += 1) {
+      const url = assets[index];
+      const response = await fetch(new Request(url, { cache: 'reload' }));
+      if (!response.ok) throw new Error(`Не удалось скачать ${url} (${response.status}).`);
+      await cache.put(url, response.clone());
+      port.postMessage({ type: 'progress', completed: index + 1, total: assets.length, file: url.split('/').pop() });
+    }
+
+    await cache.put('/__offline_class_manifest__', new Response(JSON.stringify({
+      grade, version, maps, assets, downloadedAt: Date.now()
+    }), { headers: { 'Content-Type': 'application/json' } }));
+  } catch (error) {
+    await caches.delete(cacheName);
+    throw error;
+  }
+
+  const gradePrefix = CLASS_CACHE_PREFIX + encodeURIComponent(grade) + '-';
+  const oldCaches = (await caches.keys()).filter((name) => name.startsWith(gradePrefix) && name !== cacheName);
+  await Promise.all(oldCaches.map((name) => caches.delete(name)));
+  port.postMessage({ type: 'done', total: assets.length });
+}
 
 /* ---------- Push-уведомления ---------- */
 

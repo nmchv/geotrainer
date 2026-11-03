@@ -230,7 +230,30 @@ select option { background: var(--color-surface-elevated); }
 .section-head h2 { font-size: var(--fs-h2); font-weight: 600; line-height: 1.1; letter-spacing: -.025em; }
 .section-head p { margin-top: 14px; color: var(--color-text-secondary); text-wrap: pretty; }
 .section-index { display: block; margin-bottom: 16px; font-size: var(--fs-small); letter-spacing: .14em; color: var(--color-accent); font-variant-numeric: tabular-nums; }
-.sub-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 20px; margin: clamp(28px, 4vw, 44px) 0 14px; }
+.sub-head {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: 6px 20px;
+    margin: clamp(28px, 4vw, 44px) 0 14px;
+}
+
+.sub-head:first-of-type {
+    margin-top: 0;
+}
+
+.sub-head h3 {
+    font-size: clamp(1.15rem, 1.05rem + .6vw, 1.5rem);
+    font-weight: 600;
+    letter-spacing: -.015em;
+}
+
+.sub-head span {
+    justify-self: end;
+    white-space: nowrap;
+    color: var(--color-text-secondary);
+    font-size: var(--fs-small);
+}
 .sub-head:first-of-type { margin-top: 0; }
 .sub-head h3 { font-size: clamp(1.15rem, 1.05rem + .6vw, 1.5rem); font-weight: 600; letter-spacing: -.015em; }
 .sub-head span { color: var(--color-text-secondary); font-size: var(--fs-small); }

@@ -12,10 +12,14 @@
 <script>document.documentElement.classList.add('js')</script>
 <link rel="manifest" href="/manifest.webmanifest">
 <meta name="mobile-web-app-capable" content="yes">
+<!-- Специфические настройки Apple iOS -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="GeoTrainer">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<!-- Иконки для устройств Apple -->
+<link rel="apple-touch-icon" sizes="180x180" href="/icons/apple-touch-icon.png"> <!-- Основная для iPhone -->
+<link rel="apple-touch-icon" sizes="167x167" href="/icons/apple-touch-icon-167.png"> <!-- Для iPad Pro -->
+<link rel="apple-touch-icon" sizes="152x152" href="/icons/apple-touch-icon-152.png"> <!-- Для остальных iPad -->   
 <style>
 /* ============================================================
    Геотренажёр — оформление в стилистике nmchv.ru

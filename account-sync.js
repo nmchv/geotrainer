@@ -134,8 +134,14 @@ function updateWidget() {
   }
   widget.textContent = sessionUser
     ? `Общий аккаунт: ${sessionUser.email || "подключён"}`
-    : "Войти по почте";
-  widget.title = sessionUser ? "Настройки общего аккаунта" : "Войти с общим аккаунтом nmchv";
+    : bridge.currentUser()
+      ? "Привязать к личному кабинету"
+      : "Войти по почте";
+  widget.title = sessionUser
+    ? "Настройки общего аккаунта"
+    : bridge.currentUser()
+      ? "Привязать профиль GeoTrainer к общему аккаунту nmchv"
+      : "Войти с общим аккаунтом nmchv";
   widget.classList.remove("is-error");
 }
 
@@ -331,16 +337,24 @@ legacyLogin.addEventListener("click", () => {
     if (warning) setMessage(warning, true);
   });
 });
-widget.addEventListener("click", () => openDialog());
+widget.addEventListener("click", () => openDialog(undefined, bridge.currentUser()?.key || ""));
+window.addEventListener("gt-auth", updateWidget);
 
 window.loginBox = (done, pre) => {
   if (sessionUser) {
     done?.();
     return;
   }
-  openDialog(done, pre?.name || "");
+  if (legacyLoginBox) {
+    legacyLoginBox(done, pre);
+    return;
+  }
+  openDialog(done, bridge.currentUser()?.key || "");
 };
-window.logout = signOutAccount;
+const legacyLogout = window.logout;
+window.logout = (...args) => sessionUser
+  ? signOutAccount()
+  : legacyLogout?.apply(window, args);
 window.syncUser = async (...args) => sessionUser
   ? true
   : legacySyncUser?.apply(window, args) ?? false;
@@ -366,7 +380,6 @@ if (typeof window.recordAttempt === "function") {
 }
 
 async function initialize() {
-  bridge.setCurrentUser(null);
   window.GT_ACCOUNT_USER_ID = null;
   if (!config?.url || !config?.key) {
     widget.disabled = true;
@@ -382,7 +395,6 @@ async function initialize() {
   if (data.session?.user) {
     await connectAccount(data.session.user);
   } else {
-    bridge.setCurrentUser(null);
     updateWidget();
   }
   client.auth.onAuthStateChange((event) => {

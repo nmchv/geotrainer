@@ -324,12 +324,12 @@
   const statsPayload = st => ({ score: st.score, tests: st.tests, attempts: st.n, fives: st.fives, avg: st.avg || 0, badges: autoCount(st) });
 
   function scheduleSubmit(delay) {
-    if (!REMOTE || !USER) return;
+    if (!REMOTE || !USER || window.GT_ACCOUNT_USER_ID) return;
     clearTimeout(lbTimer);
     lbTimer = setTimeout(submitLB, delay || 1500);
   }
   async function submitLB() {
-    if (!REMOTE || !USER || !navigator.onLine) return;
+    if (!REMOTE || !USER || window.GT_ACCOUNT_USER_ID || !navigator.onLine) return;
     try { await loadCustom(); } catch (e) { /* бейджи администратора не загрузились — считаем только встроенные */ }
     const st = computeStats(USER.attempts);
     if (!st.n) return;

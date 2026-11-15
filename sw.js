@@ -1,7 +1,7 @@
 /* GeoTrainer service worker: офлайн-кэш + push-уведомления */
 
-const CACHE = 'geotrainer-shell-v7';
-const CLASS_CACHE_PREFIX = 'geotrainer-class-v6-';
+const CACHE = 'geotrainer-shell-v8';
+const CLASS_CACHE_PREFIX = 'geotrainer-class-v7-';
 const PRECACHE = [
   '/',
   '/index.html',
@@ -10,7 +10,6 @@ const PRECACHE = [
   '/pwa.js',
   '/auth.js',
   '/cabinet.js',
-  '/account-sync.js',
   '/maps.js',
   '/tests.json',
   '/manifest.webmanifest',

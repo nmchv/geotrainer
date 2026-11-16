@@ -135,6 +135,7 @@
           if (/Invalid login credentials/i.test(m)) msg.textContent = tr('Неверный email или пароль личного кабинета.', 'Wrong nmchv account email or password.');
           else if (/email_mismatch/i.test(m)) msg.textContent = tr('Email сессии не совпадает. Войдите тем же email, что и в личном кабинете.', 'Session email does not match. Sign in with the same email as your account.');
           else if (/duplicate key|geotrainer_links_legacy_key_key/i.test(m)) msg.textContent = tr('Этот логин Геотренажёра уже привязан к другому аккаунту.', 'This GeoTrainer login is already linked to another account.');
+          else if (/column reference \"project_id\" is ambiguous/i.test(m)) msg.textContent = tr('На стороне личного кабинета нужно применить исправление миграции (триггер активности). После обновления БД повторите синхронизацию.', 'The account database needs a trigger fix migration. Apply it and try syncing again.');
           else msg.textContent = tr('Не удалось связать: ', 'Could not link: ') + m;
           msg.className = 'badc';
         } finally { btn.disabled = false; }

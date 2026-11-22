@@ -1052,7 +1052,7 @@
         for (const u of D.users) {
           const st = computeStats(D.by[u.key] || []);
           if (!st.n) { skipped++; continue; }                  // у логина ещё нет ни одной попытки
-          try { await rpc0('geotrainer_geotrainer_gt_admin_lb_submit', { p_pass: adminPass(), p_key: u.key, p_name: u.name, p_stats: statsPayload(st) }); done++; }
+          try { await rpc0('geotrainer_gt_admin_lb_submit', { p_pass: adminPass(), p_key: u.key, p_name: u.name, p_stats: statsPayload(st) }); done++; }
           catch (e) { failed++; console.warn('Рейтинг:', u.name, e.message); }
           status.textContent = tr('Обработано', 'Processed') + ': ' + (done + skipped + failed) + ' / ' + D.users.length;
         }

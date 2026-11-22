@@ -277,7 +277,7 @@
   async function loadCustom(force) {
     if (!REMOTE) return false;
     if (!force && Date.now() - customAt < 300000) return false;
-    const list = await rpc0('gt_badges_list');
+    const list = await rpc0('geotrainer_gt_badges_list');
     customAt = Date.now();
     const next = (Array.isArray(list) ? list : []).map(toBadge);
     const changed = JSON.stringify(next) !== JSON.stringify(CUSTOM);
@@ -289,7 +289,7 @@
   const AW = {};
   async function loadAwards(key) {
     if (!REMOTE || !key) return false;
-    const list = await rpc0('gt_my_awards', { p_key: key });
+    const list = await rpc0('geotrainer_gt_my_awards', { p_key: key });
     const next = new Set(Array.isArray(list) ? list : []);
     const prev = AW[key] || new Set();
     AW[key] = next;
@@ -313,7 +313,7 @@
     if (!REMOTE) return Promise.resolve(localRows());
     if (!force && LB.rows && Date.now() - LB.at < LB.TTL) return Promise.resolve(LB.rows);
     if (LB.pending) return LB.pending;
-    LB.pending = rpc0('gt_leaderboard', { p_limit: 3 })
+    LB.pending = rpc0('geotrainer_gt_leaderboard', { p_limit: 3 })
       .then(r => { LB.rows = Array.isArray(r) ? r.slice(0, 3) : []; LB.at = Date.now(); return LB.rows; })
       .finally(() => { LB.pending = null; });
     return LB.pending;
@@ -337,7 +337,7 @@
     const sig = USER.key + '|' + JSON.stringify(stats);
     if (sig === lbSent) return;
     try {
-      await rpc0('gt_lb_submit', { p_key: USER.key, p_name: USER.name, p_stats: stats, p_token: tokenOf(USER.key) });
+      await rpc0('geotrainer_gt_lb_submit', { p_key: USER.key, p_name: USER.name, p_stats: stats, p_token: tokenOf(USER.key) });
       lbSent = sig; LB.at = 0;
       if (CURV === 'home' && $('sec-leaders')) loadLB(true).then(r => refreshLeaders(r)).catch(() => {});
     } catch (e) {
@@ -483,8 +483,8 @@
     if (REMOTE) {
       if (!navigator.onLine) throw new Error(tr('Нет связи с сервером.', 'No connection to the server.'));
       if (!(await pushPending())) throw new Error(tr('Не удалось отправить попытки на сервер — повторите позже.', 'Could not upload your attempts — try again later.'));
-      await rpc0('gt_login', { p_key: old, p_name: USER.name });          // убедимся, что логин есть на сервере
-      await rpc0('gt_rename', { p_key: old, p_name: name, p_token: tokenOf(old) });
+      await rpc0('geotrainer_gt_login', { p_key: old, p_name: USER.name });          // убедимся, что логин есть на сервере
+      await rpc0('geotrainer_gt_rename', { p_key: old, p_name: name, p_token: tokenOf(old) });
     } else if (key !== old && STORE.users[key]) {
       throw new Error('taken');
     }
@@ -502,7 +502,7 @@
   async function renameAdmin(key, raw) {
     const name = normName(raw);
     if (!name) throw new Error('bad name');
-    const nk = await rpc0('gt_admin_rename', { p_pass: adminPass(), p_key: key, p_name: name });
+    const nk = await rpc0('geotrainer_gt_admin_rename', { p_pass: adminPass(), p_key: key, p_name: name });
     const newKey = typeof nk === 'string' && nk ? nk : name.toLowerCase();
     if (AW[key] && newKey !== key) { AW[newKey] = AW[key]; delete AW[key]; }
     LB.at = 0;
@@ -522,7 +522,7 @@
       btn.addEventListener('click', async () => {
         if (!confirm(tr('Сбросить пароль для «', 'Reset the password for “') + ctx.name + tr('»? Все его устройства выйдут, а при следующем входе он придумает новый пароль.', '”? All its devices will be signed out and the student will choose a new password at next sign-in.'))) return;
         btn.disabled = true;
-        try { await rpc0('gt_admin_reset_pass', { p_pass: adminPass(), p_key: ctx.key }); ctx.hasPass = false; if (ADM.data) ADM.data.pw.delete(ctx.key); paint(); msg.textContent = tr('Пароль сброшен.', 'Password reset.'); }
+        try { await rpc0('geotrainer_gt_admin_reset_pass', { p_pass: adminPass(), p_key: ctx.key }); ctx.hasPass = false; if (ADM.data) ADM.data.pw.delete(ctx.key); paint(); msg.textContent = tr('Пароль сброшен.', 'Password reset.'); }
         catch (e) { msg.textContent = errText(e); btn.disabled = false; }
       });
       wrap.append(h('p', { className: 'sub' }, tr('✓ Пароль задан. Если ученик его забыл — сбросьте: он придумает новый при следующем входе.', '✓ A password is set. If the student forgot it, reset it: they will choose a new one at next sign-in.')),
@@ -600,7 +600,7 @@
         btn.addEventListener('click', async () => {
           btn.disabled = true;
           try {
-            await rpc0('gt_admin_badge_award', { p_pass: adminPass(), p_badge: b.id, p_key: ctx.key, p_on: !got });
+            await rpc0('geotrainer_gt_admin_badge_award', { p_pass: adminPass(), p_badge: b.id, p_key: ctx.key, p_on: !got });
             const s = AW[ctx.key] || (AW[ctx.key] = new Set());
             if (got) s.delete(b.id); else s.add(b.id);
             LB.at = 0;
@@ -665,7 +665,7 @@
         const cb = h('input', { type: 'checkbox', checked: !hidden });
         cb.addEventListener('change', async () => {
           cb.disabled = true;
-          try { await rpc0('gt_admin_set_hidden', { p_pass: adminPass(), p_key: ctx.key, p_name: ctx.name, p_hidden: !cb.checked }); LB.at = 0; load(); }
+          try { await rpc0('geotrainer_gt_admin_set_hidden', { p_pass: adminPass(), p_key: ctx.key, p_name: ctx.name, p_hidden: !cb.checked }); LB.at = 0; load(); }
           catch (e) { alert(errText(e)); cb.checked = !cb.checked; cb.disabled = false; }
         });
         box.append(h('label', { className: 'gtc-opt', style: 'flex-basis:100%' }, cb, tr('Показывать в таблице лидеров', 'Show on the leaderboard')));
@@ -673,7 +673,7 @@
     };
     const load = () => {
       if (!REMOTE) { const r = localRows(), i = r.findIndex(x => x.key === ctx.key); draw(i >= 0 ? { rank: i + 1 } : null); return; }
-      rpc0('gt_lb_me', { p_key: ctx.key }).then(draw).catch(() => { box.remove(); });   // рейтинг не настроен — карточку не показываем
+      rpc0('geotrainer_gt_lb_me', { p_key: ctx.key }).then(draw).catch(() => { box.remove(); });   // рейтинг не настроен — карточку не показываем
     };
     load();
     return box;
@@ -812,7 +812,7 @@
   window.rpc = async function (fn, args) {
     const res = await rpc0(fn, args);
     if (fn === 'gt_admin_delete' && args) {                 // администратор удалил логин — убираем и из рейтинга
-      rpc0('gt_lb_remove', { p_pass: args.p_pass, p_key: args.p_key }).then(() => { LB.at = 0; }).catch(() => {});
+      rpc0('geotrainer_gt_lb_remove', { p_pass: args.p_pass, p_key: args.p_key }).then(() => { LB.at = 0; }).catch(() => {});
     }
     return res;
   };
@@ -844,10 +844,10 @@
   async function loadAdminData() {
     const pass = adminPass();
     const [all, lbRows, awards, accs] = await Promise.all([
-      rpc0('gt_admin_all', { p_pass: pass }),
-      rpc0('gt_admin_lb', { p_pass: pass }).catch(() => null),        // null — обновлённый SQL ещё не выполнен
-      rpc0('gt_admin_awards', { p_pass: pass }).catch(() => []),
-      rpc0('gt_admin_accounts', { p_pass: pass }).catch(() => null)     // null — обновлённый SQL ещё не выполнен
+      rpc0('geotrainer_gt_admin_all', { p_pass: pass }),
+      rpc0('geotrainer_gt_admin_lb', { p_pass: pass }).catch(() => null),        // null — обновлённый SQL ещё не выполнен
+      rpc0('geotrainer_gt_admin_awards', { p_pass: pass }).catch(() => []),
+      rpc0('geotrainer_gt_admin_accounts', { p_pass: pass }).catch(() => null)     // null — обновлённый SQL ещё не выполнен
     ]);
     await loadCustom(true).catch(() => {});
     const by = {};
@@ -938,7 +938,7 @@
           } } }, tr('Изменить', 'Edit')),
           h('button', { className: 'btn ghost sm', on: { click: async () => {
             if (!confirm(tr('Удалить бейдж «', 'Delete the badge “') + b.n[0] + tr('»? Он пропадёт у всех учеников.', '”? It will disappear for every student.'))) return;
-            try { await rpc0('gt_admin_badge_delete', { p_pass: adminPass(), p_id: b.id }); await loadCustom(true); LB.at = 0; drawList(); msg.textContent = tr('Бейдж удалён.', 'Badge deleted.'); }
+            try { await rpc0('geotrainer_gt_admin_badge_delete', { p_pass: adminPass(), p_id: b.id }); await loadCustom(true); LB.at = 0; drawList(); msg.textContent = tr('Бейдж удалён.', 'Badge deleted.'); }
             catch (e) { msg.textContent = errText(e); }
           } } }, tr('Удалить', 'Delete'))));
       });
@@ -951,7 +951,7 @@
       const id = f.id || ('c' + Date.now().toString(36));
       btnSave.disabled = true;
       try {
-        await rpc0('gt_admin_badge_save', { p_pass: adminPass(), p_id: id, p_def: { name, desc: f.desc.trim(), icon: f.icon, tier: f.tier, kind: f.kind, metric: f.kind === 'metric' ? f.metric : null, goal } });
+        await rpc0('geotrainer_gt_admin_badge_save', { p_pass: adminPass(), p_id: id, p_def: { name, desc: f.desc.trim(), icon: f.icon, tier: f.tier, kind: f.kind, metric: f.kind === 'metric' ? f.metric : null, goal } });
         await loadCustom(true); LB.at = 0;
         const edited = !!f.id;
         reset(); drawList();
@@ -1014,7 +1014,7 @@
           title: st.score ? '' : tr('Попадёт в таблицу, когда наберёт очки', 'Will appear once they score points') });
         cb.addEventListener('change', async () => {
           cb.disabled = true;
-          try { await rpc0('gt_admin_set_hidden', { p_pass: adminPass(), p_key: u.key, p_name: u.name, p_hidden: !cb.checked }); D.hidden[u.key] = !cb.checked; LB.at = 0; }
+          try { await rpc0('geotrainer_gt_admin_set_hidden', { p_pass: adminPass(), p_key: u.key, p_name: u.name, p_hidden: !cb.checked }); D.hidden[u.key] = !cb.checked; LB.at = 0; }
           catch (e) { alert(errText(e)); cb.checked = !cb.checked; }
           finally { cb.disabled = false; }
         });
@@ -1052,7 +1052,7 @@
         for (const u of D.users) {
           const st = computeStats(D.by[u.key] || []);
           if (!st.n) { skipped++; continue; }                  // у логина ещё нет ни одной попытки
-          try { await rpc0('gt_admin_lb_submit', { p_pass: adminPass(), p_key: u.key, p_name: u.name, p_stats: statsPayload(st) }); done++; }
+          try { await rpc0('geotrainer_geotrainer_gt_admin_lb_submit', { p_pass: adminPass(), p_key: u.key, p_name: u.name, p_stats: statsPayload(st) }); done++; }
           catch (e) { failed++; console.warn('Рейтинг:', u.name, e.message); }
           status.textContent = tr('Обработано', 'Processed') + ': ' + (done + skipped + failed) + ' / ' + D.users.length;
         }

@@ -162,7 +162,7 @@
       let status;
       try {
         if (!navigator.onLine) throw new Error('offline');
-        status = await rpc0('gt_acc_status', { p_key: key });
+        status = await rpc0('geotrainer_gt_acc_status', { p_key: key });
       } catch (e) {
         wait(false);
         if (missing(e)) { NOAUTH = true; closeDialog(); loginBox0(cb); return; }      // SQL ещё не обновлён — по-старому
@@ -171,7 +171,7 @@
       if (status && status.has_pass) { wait(false); return stepPass(key, name); }
       if (status && status.known === false) {
         try {
-          const mv = await rpc0('gt_acc_moved', { p_key: key });
+          const mv = await rpc0('geotrainer_gt_acc_moved', { p_key: key });
           if (mv && mv.key) { wait(false); return stepMoved(name, mv); }
         } catch (e) { /* подсказка о переносе необязательна */ }
       }
@@ -188,7 +188,7 @@
         if (!inp.value) { err.textContent = tr('Введите пароль', 'Enter your password'); inp.focus(); return; }
         wait(true);
         let r;
-        try { r = await rpc0('gt_acc_login', { p_key: key, p_pass: inp.value }); }
+        try { r = await rpc0('geotrainer_gt_acc_login', { p_key: key, p_pass: inp.value }); }
         catch (e) { wait(false); err.textContent = errText(e); return; }
         if (r && r.ok) return finish(key, name, r.token);
         wait(false);
@@ -211,7 +211,7 @@
         if (inp.value.length < 4) { err.textContent = tr('Пароль — от 4 символов.', 'The password must be at least 4 characters.'); inp.focus(); return; }
         wait(true);
         let tok;
-        try { tok = await rpc0('gt_acc_register', { p_key: key, p_name: name, p_pass: inp.value }); }
+        try { tok = await rpc0('geotrainer_gt_acc_register', { p_key: key, p_name: name, p_pass: inp.value }); }
         catch (e) {
           wait(false);
           if (/taken/.test(e.message || '')) return stepPass(key, name, tr('Для этого логина пароль уже задан — введите его.', 'This login already has a password — enter it.'));
@@ -252,7 +252,7 @@
   const logout0 = window.logout;
   window.logout = function () {
     const k = USER && USER.key, t = k ? token(k) : '';
-    if (t) rpc0('gt_acc_logout', { p_token: t }).catch(() => {});      // этот вход на сервере больше не действует
+    if (t) rpc0('geotrainer_gt_acc_logout', { p_token: t }).catch(() => {});      // этот вход на сервере больше не действует
     if (k) dropToken(k);                                                 // логин остаётся на кнопке, но без пароля не войти
     return logout0.apply(this, arguments);
   };
@@ -280,7 +280,7 @@
     let c = moved[k];
     if (!c || (!c.p && !c.mv && Date.now() - c.t > 600000)) {
       c = moved[k] = { t: Date.now(), mv: null, p: null };
-      c.p = rpc0('gt_acc_moved', { p_key: k })
+      c.p = rpc0('geotrainer_gt_acc_moved', { p_key: k })
         .then(mv => { if (mv && mv.key) { c.mv = mv; showMoved(mv); } })
         .catch(e => { if (missing(e)) NOAUTH = true; })
         .finally(() => { c.p = null; });
@@ -326,7 +326,7 @@
       const go = async () => {
         if (inp.value.length < 4) { err.textContent = tr('Пароль — от 4 символов.', 'The password must be at least 4 characters.'); return; }
         save.disabled = true;
-        try { await rpc0('gt_acc_set_password', { p_key: key, p_token: token(key), p_new: inp.value }); protectedView(tr('Пароль изменён. На других устройствах потребуется войти заново.', 'Password changed. Other devices will need to sign in again.')); }
+        try { await rpc0('geotrainer_gt_acc_set_password', { p_key: key, p_token: token(key), p_new: inp.value }); protectedView(tr('Пароль изменён. На других устройствах потребуется войти заново.', 'Password changed. Other devices will need to sign in again.')); }
         catch (e) { err.textContent = errText(e); save.disabled = false; if (/unauthorized/.test(e.message || '')) { dropToken(key); changed(key); } }
       };
       save.addEventListener('click', go);
@@ -342,7 +342,7 @@
         if (inp.value.length < 4) { err.textContent = tr('Пароль — от 4 символов.', 'The password must be at least 4 characters.'); return; }
         btn.disabled = true;
         try {
-          const tok = await rpc0('gt_acc_register', { p_key: key, p_name: name, p_pass: inp.value });
+          const tok = await rpc0('geotrainer_gt_acc_register', { p_key: key, p_name: name, p_pass: inp.value });
           remember(key, name, tok); changed(key); protectedView(tr('Готово: пароль задан.', 'Done: the password is set.'));
         } catch (e) {
           btn.disabled = false;
@@ -364,7 +364,7 @@
         if (!inp.value) return;
         btn.disabled = true;
         try {
-          const r = await rpc0('gt_acc_login', { p_key: key, p_pass: inp.value });
+          const r = await rpc0('geotrainer_gt_acc_login', { p_key: key, p_pass: inp.value });
           if (r && r.ok) { remember(key, name, r.token); changed(key); protectedView(tr('Готово: вход подтверждён.', 'Done: sign-in confirmed.')); return; }
           err.textContent = loginErr(r); btn.disabled = false;
           if (r && r.error === 'nopass') claimView();
@@ -380,9 +380,9 @@
     (async () => {
       try {
         const t = token(key);
-        if (t && (await rpc0('gt_acc_valid', { p_key: key, p_token: t }))) return protectedView();
+        if (t && (await rpc0('geotrainer_gt_acc_valid', { p_key: key, p_token: t }))) return protectedView();
         if (t) dropToken(key);                                  // вход устарел или пароль сбросили
-        const s = await rpc0('gt_acc_status', { p_key: key });
+        const s = await rpc0('geotrainer_gt_acc_status', { p_key: key });
         if (s && s.has_pass) confirmView(); else claimView();
       } catch (e) {
         if (missing(e)) { NOAUTH = true; wrap.remove(); return; }
